@@ -5,171 +5,267 @@
 
 # Artifact-Driven Virtual Development Team Skill
 
-> A production-ready virtual software development team  
-> running on OpenClaw, powered by artifact-driven workflows.
+````markdown
+
+![Version](https://img.shields.io/badge/version-1.0.5-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [Key Features](#key-features)
+- [Installation & Setup](#installation--setup)
+- [Core Concepts](#core-concepts)
+- [Workflow](#workflow)
+- [Directory Structure](#directory-structure)
+- [Agents Overview](#agents-overview)
+- [Artifacts Overview](#artifacts-overview)
+- [Hook Automation](#hook-automation)
+- [Development & Extension](#development--extension)
+- [Usage Examples](#usage-examples)
+- [Compatibility](#compatibility)
+- [License](#license)
+- [FAQ](#faq)
 
 ---
 
-## 🌍 Introduction
+## Project Overview
 
-This Skill simulates a complete software development team composed of
-specialized Agents, including:
+The `Artifact-driven Virtual Dev Team` is a **document-driven, reusable virtual software development team skill**. It orchestrates structured agents and artifacts to cover the entire workflow from idea submission to QA acceptance.  
 
-- Product Manager (PM)
-- UX / UI Designers
-- Architect
-- Frontend & Backend Engineers
-- QA Engineer
+Key features include:
 
-Users communicate purely through **natural language**.
-The system transforms conversations into **structured development artifacts**,
-ensuring that development is controllable, resumable, and auditable.
+- **PM understands user requirements → Automatically creates project folder**  
+- **PRD output → Written to folder → README placeholders updated**  
+- **Supports multi-version PRD management and change handling**  
+- **Full logging and automatic folder management**  
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🧠 Artifact-Driven, Not Chat-Driven
-
-- Progress is anchored to documents, not chat history
-- Fully resumable after interruption or restart
-
-### 🧑‍💼 PM-Centric Interaction
-
-- Single conversational entry point
-- Clear authority and responsibility
-
-### 🔄 Safe Pause & Resume
-
-- Development can be paused at any time
-- Resume from the latest artifact anchor
-
-### 🔁 Controlled Change Management
-
-- No forms required for users
-- Natural language → ChangeRequest → PRD versioning
-- Built-in directional change detection SOP
-
-### 📄 Production-Grade SOP
-
-- PRD Meta validation
-- Clear version lineage
-- Auditable change history
+1. **End-to-end virtual dev team support**: PM, PJM, UX/UI designers, architect, frontend/backend, QA  
+2. **Document-driven workflow**: All requirements and PRD managed as artifacts  
+3. **Automated project initialization**: Creates `$HOME/openclaw_workspace/project-{ProjectName}` automatically  
+4. **Seamless PRD-folder integration**: PRD output written to project folder, README placeholder updated  
+5. **Smart change handling**: Minor versions (v1.x) vs major versions (v2.0)  
+6. **Configurable runtime environment**: `domain_context`, `language`, `tone`  
 
 ---
 
-## 🧱 Architecture Overview
+## Installation & Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/<your-username>/artifact-driven-dev-team.git
+cd artifact-driven-dev-team
+
+# Install OpenClaw >=0.5.0
+pip install openclaw>=0.5.0
+
+# Optional: customize workspace
+export OPENCLAW_WORKSPACE=~/openclaw_workspace
+````
+
+> Default workspace is `~/openclaw_workspace`, used to store auto-created project folders and logs.
+
+---
+
+## Core Concepts
+
+* **Agent**: Virtual team member role, with defined input/output artifacts
+* **Artifact**: Document or data unit, e.g., `PRD`, `RawIdea`, `ChangeRequest`
+* **Workflow Hooks**: Automation scripts executed at specific stages
+* **Meta Block**: The first section of PRD, includes Project Name, version, author, etc.
+
+---
+
+## Workflow
 
 ```text
-User (Natural Language)
-        ↓
-     PM Agent
-        ↓
-   Structured Artifacts
-(PRD / ChangeRequest / Backlog ...)
-        ↓
- Other Specialized Agents
+    User submits idea/change
+        |
+        v
+       PM generates PRD
+        |
+        v
+   Before Hook: create project folder + README
+        |
+        v
+    After Hook: write PRD + update README
+        |
+        v
+UX/UI / Frontend / Backend / QA execute development & testing
+```
 
-🗂️ Core Artifacts
-| Artifact      | Description                                       |
-| ------------- | ------------------------------------------------- |
-| PRD           | Product Requirement Document with Meta validation |
-| ChangeRequest | Controlled requirement change                     |
-| Backlog       | Task decomposition                                |
-| Design Specs  | UX / UI / API / DB                                |
-| TestReport    | QA and acceptance results                         |
+**Explanation**:
 
+1. User submits **RawIdea / ChangeRequest**
+2. PM Agent generates PRD with Meta Block
+3. **Before Hook** creates project folder and README.md
+4. **After Hook** writes PRD file and updates README placeholder
+5. Subsequent agents execute development and QA based on artifacts
 
-🔄 Conversation State Model
+---
 
-The Skill always maintains one of three states:
+## Directory Structure (Example)
 
-active_dev – development in progress
+```text
+artifact-driven-dev-team/
+├─ agents/
+│  ├─ architect.yaml
+│  ├─ backend.yaml
+│  ├─ frontend.yaml
+│  ├─ pjm.yaml
+│  ├─ pm.yaml
+│  ├─ qa.yaml
+│  ├─ ui.yaml
+│  └─ ux.yaml
+├─ docs/
+│  ├─ pm_conversation_templates.md
+│  └─ pm_internal_sop.md
+├─ examples/
+│  ├─ basic_run.md
+│  └─ custom_agent_override.md
+├─ LICENSE
+├─ README.md
+├─ README_zh.md
+├─ artifacts.yaml
+├─ registry.yaml
+├─ skill.yaml
+├─ system_prompt.md
+└─ $OPENCLAW_WORKSPACE/
+    └─ project-{ProjectName}/
+        ├─ README.md       # auto-generated, includes PRD placeholder
+        └─ project_prd.md  # PRD file
+```
 
-paused_dev – development safely paused
+---
 
-closed_dev – development completed
+## Agents Overview
 
-Development Anchor
+| Agent            | Responsibility                                              |
+| ---------------- | ----------------------------------------------------------- |
+| PM               | Product Manager, generates PRD, handles change requests     |
+| PJM              | Project Manager, coordinates dev schedule                   |
+| UXDesigner       | User experience design, generates prototypes and user flows |
+| UIDesigner       | UI design, generates interface designs                      |
+| Architect        | System architecture design                                  |
+| BackendEngineer  | Backend development                                         |
+| FrontendEngineer | Frontend development                                        |
+| QA               | Testing & acceptance                                        |
 
-Progress is always tied to the most recent stable artifact, such as:
+---
 
-Approved PRD
+## Artifacts Overview
 
-Draft PRD
+| Artifact      | Description                                                   |
+| ------------- | ------------------------------------------------------------- |
+| RawIdea       | User’s raw idea or requirement                                |
+| ChangeRequest | User’s request to modify requirement                          |
+| PRD           | Product Requirement Document (Markdown), includes Meta Block  |
+| README.md     | Project description file, auto-generated with PRD placeholder |
 
-Pending ChangeRequest
+---
 
-This artifact is the single source of truth for resuming work.
+## Hook Automation
 
-🧠 Change Handling
+* **Before Stage Hook (PM)**: creates project folder, generates README, logs actions
+* **After Stage Hook (PM)**: writes PRD file, updates README placeholder
 
-Users never fill out ChangeRequest forms.
+---
 
-Workflow:
+## Development & Extension
 
-User speaks naturally
+1. Add custom agents under `agents/` folder
+2. Extend artifact types or add hook scripts
+3. `agent_policy` supports full_replace / partial_extend for prompt overrides
 
-PM detects potential change
+---
 
-System generates ChangeRequest (draft)
+## Usage Examples
 
-User confirms
+### Example 1: Basic Run
 
-New PRD version is created if needed
+```yaml
+RawIdea:
+  title: "Automated PRD Generation Demo"
+  description: "System automatically generates PRD, creates project folder, updates README placeholder"
+```
 
-🚀 How to Use
-Step 1: Start with an idea
+Run:
 
-“I want to build an app that helps people track habits.”
+```bash
+openclaw run skill artifact-driven-dev-team --input RawIdea.yaml
+```
 
-Step 2: Talk naturally
+Output:
 
-No templates. No forms.
+```
+$HOME/openclaw_workspace/project-Automated_PRD_Generation_Demo/
+├─ README.md
+└─ project_prd.md
+```
 
-Step 3: Review generated PRD
+---
 
-Confirm or request changes.
+### Example 2: Custom PM Agent
 
-Step 4: Pause anytime
+In `agents/pm_custom.yaml`:
 
-“Let’s talk about something else.”
+```yaml
+role: Product Manager
+stage: Planning
+input:
+  - RawIdea
+output:
+  - PRD
+prompt: |
+  You are a custom PM Agent.
+  Output PRD, trigger hooks to create project folder, output must include Meta Block.
+```
 
-Step 5: Resume anytime
+Run:
 
-“Continue the previous project.”
+```bash
+openclaw run skill artifact-driven-dev-team --override agents/pm_custom.yaml --input RawIdea.yaml
+```
 
-📁 Recommended Repository Structure
-.
-├── agents/
-│   ├── pm.yaml
-│   └── ...
-├── artifacts.yaml
-├── registry.yaml
-├── docs/
-│   ├── pm_internal_sop.md
-│   └── pm_conversation_templates.md
-├── templates/
-│   ├── PRD_TEMPLATE.md
-│   └── ChangeRequest.md
-└── README.md
+---
 
-🔮 Future Improvements
+## Compatibility
 
-Multi-project parallel execution
+* OpenClaw >= 0.5.0
+* Supported platforms: Local / Cloud / Embedded
 
-External integrations (Jira / GitHub)
+---
 
-Change pattern analytics
+## License
 
-Automated regression workflows
+MIT License. See [LICENSE](LICENSE) for details.
 
-🧠 Design Philosophy
+---
 
-Users speak freely.
-The system enforces structure.
+## FAQ
 
-Human-friendly on the surface,
+**Q1:** Can I customize the project folder location?
+
+> Yes, set the environment variable `OPENCLAW_WORKSPACE`.
+
+**Q2:** What if PRD Meta Project Name differs from RawIdea.title?
+
+> The hook will prioritize PRD Meta Project Name; RawIdea.title is fallback.
+
+**Q3:** Can multiple users generate PRD in parallel?
+
+> Yes, `workflow_policy.allow_parallel_execution: true`.
+
+**Q4:** How are ChangeRequests handled?
+
+> PM evaluates according to SOP, generates minor version (v1.x) or major version (v2.0), hooks automatically write new files.
+
+```
+
 machine-precise underneath.
 
 📜 License
