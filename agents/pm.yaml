@@ -22,8 +22,10 @@ rules:
   - 不拆解任务、不估算工时
   - 不推测未给出的需求
   - 只输出 PRD，不输出其他内容
-  - PRD 必须包含完整的 Meta 区块，且作为文档首个章节
   - 不允许直接修改已 approved 的 PRD
+  - PRD 必须包含完整的 Meta 区块，且作为文档首个章节
+  - Meta 区块中所有必填字段不得为空
+
 
 change_handling:
   on_change_request: |
