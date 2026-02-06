@@ -64,11 +64,7 @@ pip install openclaw>=0.5.0
 
 # 可选：自定义工作目录
 export OPENCLAW_WORKSPACE=~/openclaw_workspace
-````
 
-> 默认工作目录为 `~/openclaw_workspace`，用于存放自动创建的项目文件夹和日志。
-
----
 
 ## 核心概念
 
@@ -166,45 +162,35 @@ artifact-driven-dev-team/
 
 ---
 
-## 开发与扩展
-
+开发与扩展
 1. 自定义 Agent：在 `agents/` 文件夹添加 YAML
 2. 扩展 Artifact 类型或增加 Hook 脚本
 3. agent_policy 支持 full_replace / partial_extend
 
 ---
 
-## 使用示例
+使用示例
 
-### 示例 1：Basic Run
-
-```yaml
+示例 1：Basic Run
 RawIdea:
   title: "自动化 PRD 生成演示"
   description: "系统自动生成 PRD 并创建项目文件夹，生成 README 占位符"
-```
+
 
 运行：
-
-```bash
 openclaw run skill artifact-driven-dev-team --input RawIdea.yaml
-```
+
 
 结果：
-
-```
 $HOME/openclaw_workspace/project-自动化_PRD_生成演示/
 ├─ README.md
 └─ project_prd.md
-```
+
 
 ---
 
-### 示例 2：自定义 PM Agent
-
-在 `agents/pm_custom.yaml`:
-
-```yaml
+示例 2：自定义 PM Agent
+在 agents/pm_custom.yaml:
 role: Product Manager
 stage: Planning
 input:
@@ -214,60 +200,50 @@ output:
 prompt: |
   你是自定义 PM Agent。
   输出 PRD，调用 Hook 创建项目文件夹，输出必须包含 Meta 区块。
-```
+
 
 运行：
-
-```bash
 openclaw run skill artifact-driven-dev-team --override agents/pm_custom.yaml --input RawIdea.yaml
-```
 
----
 
-## 可视化流程图
+可视化流程图
 
-```mermaid
 flowchart TD
     U[用户提交需求] --> PM[PM 生成 PRD]
     PM --> BHook[Before Hook: 创建项目文件夹 + README]
     BHook --> PRDFile[After Hook: 写入 PRD + 更新 README]
     PRDFile --> Dev[UX/UI/前后端/QA 执行开发与验收]
-```
 
----
 
-## 兼容性
+
+兼容性
 
 * OpenClaw >= 0.5.0
 * 支持平台：Local / Cloud / Embedded
 
+
+许可证
+
+MIT License. 详情请参见 LICENSE
+
 ---
 
-## 许可证
+FAQ
 
-MIT License. 详情请参见 [LICENSE](LICENSE)。
+Q1: 可以自定义项目文件夹位置吗？
 
----
+可通过环境变量 OPENCLAW_WORKSPACE 自定义。
 
-## FAQ
+Q2: PRD Meta 中 Project Name 与 RawIdea.title 不一致怎么办？
 
-**Q1:** 可以自定义项目文件夹位置吗？
+Hook 优先使用 PRD Meta 中 Project Name，RawIdea.title 仅作 fallback。
 
-> 可通过环境变量 `OPENCLAW_WORKSPACE` 自定义。
+Q3: 支持多人并行生成 PRD 吗？
 
-**Q2:** PRD Meta 中 Project Name 与 RawIdea.title 不一致怎么办？
+支持，workflow_policy.allow_parallel_execution: true。
 
-> Hook 优先使用 PRD Meta 中 Project Name，RawIdea.title 仅作 fallback。
+Q4: 如何处理 ChangeRequest？
 
-**Q3:** 支持多人并行生成 PRD 吗？
+PM 根据 SOP 判断生成小版本（v1.x）或主版本（v2.0），hook 自动写入新文件。
 
-> 支持，workflow_policy.allow_parallel_execution: true。
-
-**Q4:** 如何处理 ChangeRequest？
-
-> PM 根据 SOP 判断生成小版本（v1.x）或主版本（v2.0），hook 自动写入新文件。
-
-```
-
-你希望我生成吗？
 ```
