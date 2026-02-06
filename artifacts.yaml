@@ -36,6 +36,22 @@ artifacts:
     status_flow:
       - draft
 
+  ChangeRequest:
+    description: Requirement change request submitted during development
+    producer: User
+    consumers:
+      - PM
+    format: markdown
+    status_flow:
+      - draft
+      - approved
+      - rejected
+    required_sections:
+      - 变更背景
+      - 新增或修改的需求
+      - 变更原因
+      - 紧急程度
+
   # -------- Planning --------
   PRD:
     description: Product Requirement Document
