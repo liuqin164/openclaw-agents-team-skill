@@ -1,0 +1,163 @@
+version: 1.0
+type: workflow-registry
+name: artifact-driven-dev-team
+
+description: >
+  Artifact-driven virtual software development team workflow.
+  This registry only defines agent orchestration and scheduling rules.
+
+# =========================
+# 1. Stages（阶段定义）
+# =========================
+stages:
+  - name: Planning
+    order: 1
+
+  - name: Design
+    order: 2
+
+  - name: Implementation
+    order: 3
+
+  - name: QA
+    order: 4
+
+# =========================
+# 2. Agents（参与角色）
+# =========================
+agents:
+  - name: PM
+    stage: Planning
+    enabled: true
+
+  - name: PJM
+    stage: Planning
+    enabled: true
+
+  - name: UXDesigner
+    stage: Design
+    enabled: true
+
+  - name: UIDesigner
+    stage: Design
+    enabled: true
+
+  - name: Architect
+    stage: Design
+    enabled: true
+
+  - name: BackendEngineer
+    stage: Implementation
+    enabled: true
+
+  - name: FrontendEngineer
+    stage: Implementation
+    enabled: true
+
+  - name: QA
+    stage: QA
+    enabled: true
+
+# =========================
+# 3. Triggers（触发规则）
+# 谁在什么 Artifact 状态变化时被调度
+# =========================
+triggers:
+  # ---- Planning ----
+  - agent: PM
+    when:
+      artifact_created: RawIdea
+
+  - agent: PJM
+    when:
+      artifact_approved: PRD
+
+  # ---- Design ----
+  - agent: UXDesigner
+    when:
+      artifact_approved: PRD
+
+  - agent: UIDesigner
+    when:
+      artifact_approved: UserFlow
+
+  - agent: Architect
+    when:
+      all:
+        - artifact_approved: PRD
+        - artifact_approved: UserFlow
+
+  # ---- Implementation ----
+  - agent: BackendEngineer
+    when:
+      artifact_approved: APISpec
+
+  - agent: FrontendEngineer
+    when:
+      all:
+        - artifact_approved: APISpec
+        - artifact_approved: UIDesignSpec
+
+  # ---- QA ----
+  - agent: QA
+    when:
+      all:
+        - artifact_completed: BackendImplementation
+        - artifact_completed: FrontendImplementation
+
+# =========================
+# 4. Stage Gates（阶段门禁）
+# 防止跳阶段、提前执行
+# =========================
+stage_gates:
+  Planning:
+    must_have:
+      - PRD.approved
+      - Backlog.approved
+
+  Design:
+    must_have:
+      - UserFlow.approved
+      - UIDesignSpec.approved
+      - APISpec.approved
+
+  Implementation:
+    must_have:
+      - BackendImplementation.completed
+      - FrontendImplementation.completed
+
+  QA:
+    must_have:
+      - TestReport.approved
+
+# =========================
+# 5. Parallelism（并行策略）
+# =========================
+parallelism:
+  allowed:
+    - UXDesigner
+    - Architect
+
+  blocked:
+    - QA
+
+# =========================
+# 6. Failure & Rollback Policy
+# =========================
+failure_policy:
+  on_artifact_rejected:
+    action: rollback
+    rollback_to: artifact.producer
+
+  on_bug_reported:
+    action: reopen
+    require:
+      - fix_artifact
+      - regression_test
+
+# =========================
+# 7. Completion Rule
+# =========================
+completion:
+  when:
+    artifact_approved: TestReport
