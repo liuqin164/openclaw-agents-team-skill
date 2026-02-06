@@ -1,0 +1,23 @@
+name: artifact-dev-team
+version: 1.0.0
+description: Artifact-driven virtual software development team
+
+includes:
+  system_prompt: system_prompt.md
+  registry: registry.yaml
+  artifacts: artifacts.yaml
+
+agents:
+  builtin:
+    - PM
+    - PJM
+    - UXDesigner
+    - UIDesigner
+    - Architect
+    - BackendEngineer
+    - FrontendEngineer
+    - QA
+
+override_policy:
+  allow_agent_override: true
+  allow_prompt_override: true
