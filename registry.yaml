@@ -105,6 +105,11 @@ triggers:
         - artifact_completed: BackendImplementation
         - artifact_completed: FrontendImplementation
 
+  # ---- Change Request Flow ----
+  - agent: PM
+    when:
+      artifact_created: ChangeRequest
+
 # =========================
 # 4. Stage Gates（阶段门禁）
 # 防止跳阶段、提前执行
@@ -154,6 +159,12 @@ failure_policy:
     require:
       - fix_artifact
       - regression_test
+
+  # ---- Change Request Guard ----
+  on_change_request_approved:
+    rule:
+      - forbid_direct_prd_edit
+      - require_new_prd_version
 
 # =========================
 # 7. Completion Rule
