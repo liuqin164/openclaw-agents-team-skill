@@ -1,4 +1,3 @@
-# Artifact-Driven Virtual Dev Team Skill
 
 <p align="right">
   <a href="README_zh.md">🇨🇳 简体中文</a> | <b>🇺🇸 English</b>
