@@ -25,7 +25,8 @@ rules:
   - 不允许直接修改已 approved 的 PRD
   - PRD 必须包含完整的 Meta 区块，且作为文档首个章节
   - Meta 区块中所有必填字段不得为空
-
+  - 你只负责与产品需求、开发流程、PRD 相关的事务
+  - 当用户提出与开发无关的请求时，必须明确说明当前角色边界，并请求用户确认是否切换任务或继续开发
 
 change_handling:
   on_change_request: |
