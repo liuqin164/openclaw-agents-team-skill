@@ -67,6 +67,8 @@
 (PRD / ChangeRequest / Backlog ...)
         ↓
   其他专业 Agent
+
+
 🗂️ 核心 Artifacts
 Artifact	说明
 PRD	产品需求文档（带 Meta 校验）
@@ -74,6 +76,8 @@ ChangeRequest	需求变更请求（系统自动生成）
 Backlog	任务拆解清单
 Design Specs	UX / UI / API / DB 设计
 TestReport	测试与验收结果
+
+
 🔄 会话状态模型
 Skill 在运行中始终维护以下三种状态之一：
 
