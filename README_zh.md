@@ -3,7 +3,6 @@
   <b>🇨🇳 简体中文</b> | <a href="README.md">🇺🇸 English</a>
 </p>
 
-````markdown
 # 基于文档驱动的虚拟开发团队 Skill
 
 ![版本](https://img.shields.io/badge/version-1.0.5-blue)
