@@ -53,28 +53,39 @@ artifacts:
       - 紧急程度
 
   # -------- Planning --------
-  PRD:
-    description: Product Requirement Document
-    producer: PM
-    consumers:
-      - PJM
-      - UXDesigner
-      - Architect
-    format: markdown
-    status_flow:
-      - draft
-      - approved
-      - rejected
-    required_sections:
-      - Meta
-      - 项目背景
-      - 项目目标
-      - 用户画像
-      - 使用场景
-      - 功能需求
-      - 非功能需求
-      - 不在范围内
-      - 验收标准
+PRD:
+  description: Product Requirement Document
+  producer: PM
+  consumers:
+    - PJM
+    - UXDesigner
+    - Architect
+  format: markdown
+  status_flow:
+    - draft
+    - approved
+    - rejected
+  required_sections:
+    - Meta
+    - 项目背景
+    - 项目目标
+    - 用户画像
+    - 使用场景
+    - 功能需求
+    - 非功能需求
+    - 不在范围内
+    - 验收标准
+
+  meta_validation:
+    required_fields:
+      - PRD 名称
+      - PRD 版本
+      - PRD 状态
+      - 创建日期
+      - 创建人（Agent）
+      - 所属主线（Track）
+      - 上一版本 PRD
+      - 变更类型
 
   Backlog:
     description: Task backlog derived from PRD
