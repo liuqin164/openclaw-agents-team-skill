@@ -5,8 +5,6 @@
 
 # 基于文档驱动的虚拟开发团队 Skill
 
-````markdown
-
 ![版本](https://img.shields.io/badge/version-1.0.5-blue)
 ![许可证](https://img.shields.io/badge/license-MIT-green)
 
