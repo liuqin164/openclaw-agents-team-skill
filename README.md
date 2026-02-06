@@ -69,6 +69,7 @@ User (Natural Language)
 (PRD / ChangeRequest / Backlog ...)
         ↓
  Other Specialized Agents
+
 🗂️ Core Artifacts
 Artifact	Description
 PRD	Product Requirement Document with Meta validation
@@ -76,6 +77,8 @@ ChangeRequest	Controlled requirement change
 Backlog	Task decomposition
 Design Specs	UX / UI / API / DB
 TestReport	QA and acceptance results
+
+
 🔄 Conversation State Model
 The Skill always maintains one of three states:
 
