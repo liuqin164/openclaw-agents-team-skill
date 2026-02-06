@@ -269,19 +269,5 @@ MIT License. 详情请参见 [LICENSE](LICENSE)。
 
 ```
 
----
-
-这份 README_zh.md 具备以下特点：
-
-- **流程可视化**：Mermaid 流程图展示从 RawIdea → PM → Hook → 开发  
-- **目录结构清晰**：展示仓库结构和生成的项目目录  
-- **完整示例**：basic_run 和自定义 Agent  
-- **详细说明**：Agents、Artifacts、Hook、安装、FAQ  
-- GitHub 页面可直接渲染 Mermaid 流程图  
-
----
-
-我可以帮你再生成一份 **带 PNG 图片版本的可视化流程图和项目目录结构图**，直接放 README 里，GitHub 页面显示更直观，不依赖 Mermaid 渲染。  
-
 你希望我生成吗？
 ```
