@@ -1,0 +1,162 @@
+version: 1.0
+type: artifact-schema
+name: artifact-driven-dev-team-artifacts
+
+description: >
+  Artifact protocol definitions for an artifact-driven virtual
+  software development team running on OpenClaw.
+
+# =========================
+# 1. Global Artifact Rules
+# =========================
+global:
+  default_format: markdown
+  allowed_status:
+    - draft
+    - approved
+    - rejected
+    - completed
+
+  immutability:
+    approved_artifact_readonly: true
+    new_version_required_on_change: true
+
+# =========================
+# 2. Artifact Definitions
+# =========================
+artifacts:
+
+  # -------- Input --------
+  RawIdea:
+    description: User provided raw product idea
+    producer: User
+    consumers:
+      - PM
+    format: markdown
+    status_flow:
+      - draft
+
+  # -------- Planning --------
+  PRD:
+    description: Product Requirement Document
+    producer: PM
+    consumers:
+      - PJM
+      - UXDesigner
+      - Architect
+    format: markdown
+    status_flow:
+      - draft
+      - approved
+      - rejected
+    required_sections:
+      - Meta
+      - 项目背景
+      - 项目目标
+      - 用户画像
+      - 使用场景
+      - 功能需求
+      - 非功能需求
+      - 不在范围内
+      - 验收标准
+
+  Backlog:
+    description: Task backlog derived from PRD
+    producer: PJM
+    consumers:
+      - UXDesigner
+      - UIDesigner
+      - Architect
+      - BackendEngineer
+      - FrontendEngineer
+      - QA
+    format: markdown
+    status_flow:
+      - draft
+      - approved
+
+  # -------- Design --------
+  UserFlow:
+    description: User interaction flow definition
+    producer: UXDesigner
+    consumers:
+      - UIDesigner
+      - Architect
+    format: markdown
+    status_flow:
+      - draft
+      - approved
+
+  UIDesignSpec:
+    description: UI visual design and component specification
+    producer: UIDesigner
+    consumers:
+      - FrontendEngineer
+    format: markdown
+    status_flow:
+      - draft
+      - approved
+
+  APISpec:
+    description: API specification (OpenAPI / Swagger style)
+    producer: Architect
+    consumers:
+      - BackendEngineer
+      - FrontendEngineer
+    format: markdown
+    status_flow:
+      - draft
+      - approved
+
+  DBSchema:
+    description: Database schema definition
+    producer: Architect
+    consumers:
+      - BackendEngineer
+    format: markdown
+    status_flow:
+      - draft
+      - approved
+
+  # -------- Implementation --------
+  BackendImplementation:
+    description: Backend implementation delivery
+    producer: BackendEngineer
+    consumers:
+      - QA
+    format: markdown
+    status_flow:
+      - completed
+
+  FrontendImplementation:
+    description: Frontend implementation delivery
+    producer: FrontendEngineer
+    consumers:
+      - QA
+    format: markdown
+    status_flow:
+      - completed
+
+  # -------- QA --------
+  TestReport:
+    description: QA test report and acceptance result
+    producer: QA
+    consumers:
+      - User
+      - PM
+    format: markdown
+    status_flow:
+      - draft
+      - approved
+      - rejected
+
+  BugReport:
+    description: Bug report generated during QA
+    producer: QA
+    consumers:
+      - BackendEngineer
+      - FrontendEngineer
+    format: markdown
+    status_flow:
+      - draft
+      - completed
