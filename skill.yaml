@@ -106,3 +106,6 @@ docs:
   examples:
     - examples/basic_run.md
     - examples/custom_agent_override.md
+runtime:
+  resume_policy:
+    on_restart: continue_from_artifact_state
