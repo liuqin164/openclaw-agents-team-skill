@@ -1,7 +1,7 @@
 name: artifact-driven-dev-team
 display_name: Artifact-driven Virtual Dev Team
 
-version: 1.0.4  # 最终全自动化版本
+version: 1.0.5  # 全自动化最终版本
 schema_version: 1.0
 
 description: >
@@ -86,11 +86,19 @@ workflow_policy:
             workspace = os.environ.get("OPENCLAW_WORKSPACE", "~/openclaw_workspace")
             workspace = os.path.expanduser(workspace)
 
-            raw_title = input_artifacts.get("RawIdea", {}).get("title", "default_project")
-            safe_title = re.sub(r'[\\/:*?"<>| ]', '_', raw_title.strip())
+            # --- 从 PRD Meta 读取 Project Name ---
+            prd_meta = output_artifacts.get("PRD", {}).get("meta", {})
+            project_name = prd_meta.get("Project Name", None)
+
+            # fallback 用 RawIdea.title
+            if not project_name:
+                project_name = input_artifacts.get("RawIdea", {}).get("title", "default_project")
+
+            safe_title = re.sub(r'[\\/:*?"<>| ]', '_', project_name.strip())
             base_folder_name = f"project-{safe_title}"
             project_path = os.path.join(workspace, base_folder_name)
 
+            # 如果文件夹已存在，自动加序号
             counter = 1
             final_path = project_path
             while os.path.exists(final_path):
@@ -104,7 +112,7 @@ workflow_policy:
             prd_file_name = "project_prd.md"
             with open(readme_path, "w", encoding="utf-8") as f:
                 f.write(f"# 项目目录: {base_folder_name}\n")
-                f.write(f"- 原始需求标题: {raw_title}\n")
+                f.write(f"- 原始需求标题: {input_artifacts.get('RawIdea', {}).get('title', project_name)}\n")
                 f.write(f"- 创建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
                 f.write("## PRD 文件\n")
                 f.write(f"- 占位符: [{prd_file_name}]({prd_file_name})\n")
@@ -132,8 +140,14 @@ workflow_policy:
             workspace = os.path.expanduser(workspace)
 
             prd_content = output_artifacts.get("PRD", {}).get("content", "")
-            raw_title = input_artifacts.get("RawIdea", {}).get("title", "default_project")
-            safe_title = re.sub(r'[\\/:*?"<>| ]', '_', raw_title.strip())
+            prd_meta = output_artifacts.get("PRD", {}).get("meta", {})
+            project_name = prd_meta.get("Project Name", None)
+
+            # fallback 用 RawIdea.title
+            if not project_name:
+                project_name = input_artifacts.get("RawIdea", {}).get("title", "default_project")
+
+            safe_title = re.sub(r'[\\/:*?"<>| ]', '_', project_name.strip())
             base_folder_name = f"project-{safe_title}"
             project_path = os.path.join(workspace, base_folder_name)
 
@@ -205,3 +219,81 @@ docs:
   examples:
     - examples/basic_run.md
     - examples/custom_agent_override.md
+
+# =========================
+# 10. PM Agent 配置
+# =========================
+agents:
+  PM:
+    role: Product Manager
+    stage: Planning
+    input:
+      - RawIdea
+      - ChangeRequest
+    output:
+      - PRD
+    prompt: |
+      你是一名资深产品经理（PM）。
+      你的唯一职责是：将用户的原始想法或需求变更，
+      转化为结构化、可执行的 PRD 文档。
+
+      你必须严格遵循 PRD 的 SOP 协议结构输出内容。
+      所有需求必须清晰、无歧义，便于后续 Agent 理解。
+
+      注意：
+      - 你生成的 Project Name 将用于在 $HOME/openclaw_workspace/ 下创建项目文件夹
+      - Project Name 必须只包含字母、数字或下划线，不能有空格或特殊字符
+      - Project Name 必须写入 PRD Meta 区块
+
+    rules:
+      - 不涉及任何技术实现细节
+      - 不拆解任务、不估算工时
+      - 不推测未给出的需求
+      - 只输出 PRD，不输出其他内容
+      - 在生成 PRD 前，你必须为该需求确定一个明确的项目名称（Project Name）
+      - 项目名称必须可用于目录命名（不含空格或特殊字符）
+      - 项目名称必须写入 PRD Meta 中
+      - 不允许直接修改已 approved 的 PRD
+      - PRD 必须包含完整的 Meta 区块，且作为文档首个章节
+      - Meta 区块中所有必填字段不得为空
+      - 你只负责与产品需求、开发流程、PRD 相关的事务
+      - 当用户提出与开发无关的请求时，必须明确说明当前角色边界，并请求用户确认是否切换任务或继续开发
+      - 你必须在会话中维护开发状态：active_dev / paused_dev / closed_dev
+      - 当用户明确偏离开发主题时，必须执行安全退出流程，并冻结当前开发锚点
+      - 当用户请求继续开发时，必须先确认是否恢复上次进度，还是开启新方向
+
+    change_handling:
+      on_change_request: |
+        当收到 ChangeRequest 时，你必须先评估其影响范围，
+        并根据「方向性变更判断 SOP」进行判定。
+
+        根据判定结果，你只能执行以下之一：
+        1. 生成新的 PRD 小版本（如 v1.1、v1.2），用于需求调整或功能扩展
+        2. 生成新的 PRD 主版本（如 v2.0），用于方向性变更
+        3. 明确拒绝该变更请求，并说明拒绝原因
+
+        你不得在任何情况下直接修改已有的 PRD 内容。
+        所有需求变更必须通过“新 PRD 版本”表达。
+
+    directional_change_sop:
+      description: >
+        用于判断需求变更是否构成“方向性变更”的标准化规则。
+        该 SOP 的目的是避免在原有 PRD 主线上持续缝补，
+        导致需求、设计和实现逐步失控。
+
+      판단条件:
+        - 核心用户是否发生改变
+        - 核心目标或价值主张是否发生改变
+        - 现有 PRD 是否仍可作为主要需求主干
+
+      判定规则:
+        - 若满足 0-1 条判断条件，则视为「非方向性变更」，可生成 PRD v1.x
+        - 若满足 ≥2 条判断条件，则视为「方向性变更」，必须生成 PRD v2.0
+
+      执行要求:
+        - 方向性变更必须明确声明为新版本主线
+        - 新 PRD 需在 Meta 中说明与旧版本的继承或断裂关系
+        - 不得以“持续修改旧 PRD”的方式处理方向性变更
+
+    constraints:
+      - output_format: markdown
