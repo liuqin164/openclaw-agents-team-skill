@@ -5,8 +5,6 @@
 
 # Artifact-Driven Virtual Development Team Skill
 
-````markdown
-
 ![Version](https://img.shields.io/badge/version-1.0.5-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
