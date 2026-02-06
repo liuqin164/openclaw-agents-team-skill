@@ -1,14 +1,15 @@
 name: artifact-driven-dev-team
 display_name: Artifact-driven Virtual Dev Team
 
-version: 1.0.1  # 更新版本
+version: 1.0.2  # 更新版本
 schema_version: 1.0
 
 description: >
   A reusable, artifact-driven virtual software development team skill.
   It provides a full workflow from product idea to QA acceptance,
   powered by structured agents and document-based orchestration.
-  Added automatic project folder creation before PRD generation.
+  新增智能项目文件夹创建功能：在 PM 理解用户需求后生成 PRD 前，自动创建项目目录，
+  生成 README.md 并记录日志。
 
 author: LangGPT
 license: MIT
@@ -66,27 +67,54 @@ workflow_policy:
   enforce_stage_order: true
   allow_parallel_execution: true
   allow_skip_stage: false
-  # 新增 PM hook
   hooks:
     before_stage:
       PM:
         - name: create_project_folder
           description: >
             在 PM 理解用户需求后、生成 PRD 之前，
-            在 $HOME/openclaw_workspace/ 下创建项目文件夹。
+            在 $HOME/openclaw_workspace/ 下创建项目文件夹，
+            并生成 README.md 和操作日志。
           action: |
             import os
             import pathlib
+            import re
+            from datetime import datetime
+
+            # --- 配置参数 ---
+            workspace = os.environ.get("OPENCLAW_WORKSPACE", "~/openclaw_workspace")
+            workspace = os.path.expanduser(workspace)
 
             # 获取需求名称
-            requirement_name = input_artifacts.get("RawIdea", {}).get("title", "default_project")
-            folder_name = f"project-{requirement_name.replace(' ', '_')}"
-            workspace = os.path.expanduser("~/openclaw_workspace")
-            project_path = os.path.join(workspace, folder_name)
+            raw_title = input_artifacts.get("RawIdea", {}).get("title", "default_project")
+            # 清理文件夹不允许的字符
+            safe_title = re.sub(r'[\\/:*?"<>| ]', '_', raw_title.strip())
+            base_folder_name = f"project-{safe_title}"
+            project_path = os.path.join(workspace, base_folder_name)
 
-            # 创建文件夹
-            pathlib.Path(project_path).mkdir(parents=True, exist_ok=True)
-            print(f"✅ 项目文件夹已创建: {project_path}")
+            # 如果文件夹已存在，自动加序号
+            counter = 1
+            final_path = project_path
+            while os.path.exists(final_path):
+                counter += 1
+                final_path = f"{project_path}-{counter}"
+
+            # 创建项目文件夹
+            pathlib.Path(final_path).mkdir(parents=True, exist_ok=True)
+
+            # 生成 README.md
+            readme_path = os.path.join(final_path, "README.md")
+            with open(readme_path, "w", encoding="utf-8") as f:
+                f.write(f"# 项目目录: {base_folder_name}\n")
+                f.write(f"- 原始需求标题: {raw_title}\n")
+                f.write(f"- 创建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+
+            # 写操作日志
+            log_file = os.path.join(workspace, "project_creation.log")
+            with open(log_file, "a", encoding="utf-8") as log:
+                log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 创建项目文件夹: {final_path}\n")
+
+            print(f"✅ 项目文件夹已创建: {final_path}")
 
 # =========================
 # 6. Runtime Configuration (Optional)
