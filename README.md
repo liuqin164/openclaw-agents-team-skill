@@ -71,15 +71,17 @@ User (Natural Language)
  Other Specialized Agents
 
 🗂️ Core Artifacts
-Artifact	Description
-PRD	Product Requirement Document with Meta validation
-ChangeRequest	Controlled requirement change
-Backlog	Task decomposition
-Design Specs	UX / UI / API / DB
-TestReport	QA and acceptance results
+| Artifact      | Description                                       |
+| ------------- | ------------------------------------------------- |
+| PRD           | Product Requirement Document with Meta validation |
+| ChangeRequest | Controlled requirement change                     |
+| Backlog       | Task decomposition                                |
+| Design Specs  | UX / UI / API / DB                                |
+| TestReport    | QA and acceptance results                         |
 
 
 🔄 Conversation State Model
+
 The Skill always maintains one of three states:
 
 active_dev – development in progress
@@ -89,6 +91,7 @@ paused_dev – development safely paused
 closed_dev – development completed
 
 Development Anchor
+
 Progress is always tied to the most recent stable artifact, such as:
 
 Approved PRD
@@ -100,6 +103,7 @@ Pending ChangeRequest
 This artifact is the single source of truth for resuming work.
 
 🧠 Change Handling
+
 Users never fill out ChangeRequest forms.
 
 Workflow:
@@ -116,18 +120,23 @@ New PRD version is created if needed
 
 🚀 How to Use
 Step 1: Start with an idea
+
 “I want to build an app that helps people track habits.”
 
 Step 2: Talk naturally
+
 No templates. No forms.
 
 Step 3: Review generated PRD
+
 Confirm or request changes.
 
 Step 4: Pause anytime
+
 “Let’s talk about something else.”
 
 Step 5: Resume anytime
+
 “Continue the previous project.”
 
 📁 Recommended Repository Structure
@@ -144,7 +153,9 @@ Step 5: Resume anytime
 │   ├── PRD_TEMPLATE.md
 │   └── ChangeRequest.md
 └── README.md
+
 🔮 Future Improvements
+
 Multi-project parallel execution
 
 External integrations (Jira / GitHub)
@@ -154,6 +165,7 @@ Change pattern analytics
 Automated regression workflows
 
 🧠 Design Philosophy
+
 Users speak freely.
 The system enforces structure.
 
@@ -161,3 +173,5 @@ Human-friendly on the surface,
 machine-precise underneath.
 
 📜 License
+
+MIT License
