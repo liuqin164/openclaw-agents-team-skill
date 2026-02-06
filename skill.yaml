@@ -1,13 +1,14 @@
 name: artifact-driven-dev-team
 display_name: Artifact-driven Virtual Dev Team
 
-version: 1.0.0
+version: 1.0.1  # 更新版本
 schema_version: 1.0
 
 description: >
   A reusable, artifact-driven virtual software development team skill.
   It provides a full workflow from product idea to QA acceptance,
   powered by structured agents and document-based orchestration.
+  Added automatic project folder creation before PRD generation.
 
 author: LangGPT
 license: MIT
@@ -43,8 +44,8 @@ agent_policy:
   builtin_templates: required
   allow_override: true
   override_strategy:
-    - full_replace        # 完整替换 Agent Prompt
-    - partial_extend      # 在原 Prompt 基础上扩展
+    - full_replace
+    - partial_extend
 
 # =========================
 # 4. Artifact Policy
@@ -65,18 +66,41 @@ workflow_policy:
   enforce_stage_order: true
   allow_parallel_execution: true
   allow_skip_stage: false
+  # 新增 PM hook
+  hooks:
+    before_stage:
+      PM:
+        - name: create_project_folder
+          description: >
+            在 PM 理解用户需求后、生成 PRD 之前，
+            在 $HOME/openclaw_workspace/ 下创建项目文件夹。
+          action: |
+            import os
+            import pathlib
+
+            # 获取需求名称
+            requirement_name = input_artifacts.get("RawIdea", {}).get("title", "default_project")
+            folder_name = f"project-{requirement_name.replace(' ', '_')}"
+            workspace = os.path.expanduser("~/openclaw_workspace")
+            project_path = os.path.join(workspace, folder_name)
+
+            # 创建文件夹
+            pathlib.Path(project_path).mkdir(parents=True, exist_ok=True)
+            print(f"✅ 项目文件夹已创建: {project_path}")
 
 # =========================
 # 6. Runtime Configuration (Optional)
 # =========================
 runtime:
   configurable:
-    - domain_context       # e.g. fintech / edu / saas
-    - language             # zh / en
-    - tone                 # concise / verbose
+    - domain_context
+    - language
+    - tone
   defaults:
     language: zh
     tone: concise
+  resume_policy:
+    on_restart: continue_from_artifact_state
 
 # =========================
 # 7. Compatibility
@@ -106,6 +130,3 @@ docs:
   examples:
     - examples/basic_run.md
     - examples/custom_agent_override.md
-runtime:
-  resume_policy:
-    on_restart: continue_from_artifact_state
