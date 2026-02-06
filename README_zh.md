@@ -80,13 +80,20 @@ export OPENCLAW_WORKSPACE=~/openclaw_workspace
 
 ## 工作流程
 
-```mermaid
-flowchart TD
-    U[用户提交需求] --> PM[PM 生成 PRD]
-    PM --> BHook[Before Hook: 创建文件夹 + README]
-    BHook --> PRDFile[After Hook: 写入 PRD + 更新 README]
-    PRDFile --> Dev[UX/UI/前后端/QA 执行开发与验收]
-```
+    用户提交需求
+        |
+        v
+   PM 生成 PRD
+        |
+        v
+   Before Hook: 创建项目文件夹 + README
+        |
+        v
+    After Hook: 写入 PRD + 更新 README
+        |
+        v
+   UX/UI/前后端/QA:执行开发与验收
+
 
 **说明**：
 
@@ -221,19 +228,6 @@ prompt: |
 openclaw run skill artifact-driven-dev-team --override agents/pm_custom.yaml --input RawIdea.yaml
 ```
 
----
-
-## 可视化流程图
-
-```mermaid
-flowchart TD
-    U[用户提交需求] --> PM[PM 生成 PRD]
-    PM --> BHook[Before Hook: 创建项目文件夹 + README]
-    BHook --> PRDFile[After Hook: 写入 PRD + 更新 README]
-    PRDFile --> Dev[UX/UI/前后端/QA 执行开发与验收]
-```
-
----
 
 ## 兼容性
 
