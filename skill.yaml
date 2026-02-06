@@ -1,7 +1,7 @@
 name: artifact-driven-dev-team
 display_name: Artifact-driven Virtual Dev Team
 
-version: 1.0.2  # 更新版本
+version: 1.0.3  # 更新版本
 schema_version: 1.0
 
 description: >
@@ -9,7 +9,7 @@ description: >
   It provides a full workflow from product idea to QA acceptance,
   powered by structured agents and document-based orchestration.
   新增智能项目文件夹创建功能：在 PM 理解用户需求后生成 PRD 前，自动创建项目目录，
-  生成 README.md 并记录日志。
+  生成 README.md 并记录日志。README 自动包含 PRD 文件占位符。
 
 author: LangGPT
 license: MIT
@@ -75,6 +75,7 @@ workflow_policy:
             在 PM 理解用户需求后、生成 PRD 之前，
             在 $HOME/openclaw_workspace/ 下创建项目文件夹，
             并生成 README.md 和操作日志。
+            README.md 自动包含 PRD 文件占位符。
           action: |
             import os
             import pathlib
@@ -107,7 +108,10 @@ workflow_policy:
             with open(readme_path, "w", encoding="utf-8") as f:
                 f.write(f"# 项目目录: {base_folder_name}\n")
                 f.write(f"- 原始需求标题: {raw_title}\n")
-                f.write(f"- 创建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"- 创建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+                f.write("## PRD 文件\n")
+                f.write("- 占位符: PRD 文件将在此目录生成，如 project_prd.md\n")
+                f.write("- 生成后请替换此占位符为实际文件路径\n")
 
             # 写操作日志
             log_file = os.path.join(workspace, "project_creation.log")
@@ -115,6 +119,7 @@ workflow_policy:
                 log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 创建项目文件夹: {final_path}\n")
 
             print(f"✅ 项目文件夹已创建: {final_path}")
+            print(f"📄 README.md 已生成，包含 PRD 占位符")
 
 # =========================
 # 6. Runtime Configuration (Optional)
