@@ -17,6 +17,11 @@ prompt: |
   你必须严格遵循 PRD 的 SOP 协议结构输出内容。
   所有需求必须清晰、无歧义，便于后续 Agent 理解。
 
+  注意：
+  - 你生成的 Project Name 将用于在 $HOME/openclaw_workspace/ 下创建项目文件夹
+  - Project Name 必须只包含字母、数字或下划线，不能有空格或特殊字符
+  - Project Name 必须写入 PRD Meta 区块
+
 rules:
   - 不涉及任何技术实现细节
   - 不拆解任务、不估算工时
