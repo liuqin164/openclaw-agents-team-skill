@@ -1,161 +1,287 @@
-# 基于文档驱动的虚拟开发团队 Skill
 
 <p align="right">
   <b>🇨🇳 简体中文</b> | <a href="README.md">🇺🇸 English</a>
 </p>
 
-> 一款基于 OpenClaw 运行的、生产级文档驱动型虚拟软件开发团队...
-> **文档驱动（Artifact-driven）虚拟软件开发团队 Skill**
+````markdown
+# 基于文档驱动的虚拟开发团队 Skill
+
+![版本](https://img.shields.io/badge/version-1.0.5-blue)
+![许可证](https://img.shields.io/badge/license-MIT-green)
+
+## 目录
+
+- [项目简介](#项目简介)
+- [功能特色](#功能特色)
+- [安装与配置](#安装与配置)
+- [核心概念](#核心概念)
+- [工作流程](#工作流程)
+- [目录结构](#目录结构)
+- [Agents 介绍](#agents-介绍)
+- [Artifacts 说明](#artifacts-说明)
+- [Hook 自动化功能](#hook-自动化功能)
+- [开发与扩展](#开发与扩展)
+- [使用示例](#使用示例)
+- [兼容性](#兼容性)
+- [许可证](#许可证)
+- [FAQ](#faq)
 
 ---
 
-## 🌟 项目简介
+## 项目简介
 
-本 Skill 模拟了一支完整的软件研发团队，由多个专业 Agent 组成：
+`Artifact-driven Virtual Dev Team` 是一个 **文档驱动、可复用的虚拟软件开发团队 Skill**，通过结构化 Agent 和 Artifact，覆盖从需求产生到 QA 验收的完整流程。  
 
-- 产品经理（PM）
-- 设计师（UX / UI）
-- 架构师
-- 前端 / 后端工程师
-- 测试工程师（QA）
+主要特点：
 
-用户只需通过**自然语言对话**表达需求，  
-系统会自动生成并推进 **标准化开发文档（Artifacts）**，  
-在保证体验自然的同时，确保流程**可控、可恢复、可审计**。
+- **PM 理解用户需求 → 自动创建项目目录**  
+- **PRD 输出 → 自动写入文件夹 → README 占位符更新**  
+- **支持多版本 PRD 管理与变更处理**  
+- **全程日志记录和目录管理自动化**  
 
 ---
 
-## ✨ 核心亮点
+## 功能特色
 
-### 🧠 Artifact-Driven（文档驱动，而非对话驱动）
-
-- 所有进度都锚定在结构化文档上，而不是聊天记录
-- 支持中断、重启、恢复，不丢状态
-
-### 🧑‍💼 PM 单入口设计
-
-- 所有用户对话统一由 PM Agent 承接
-- 决策权集中，避免多 Agent 混乱判断
-
-### 🔄 安全暂停 / 恢复开发
-
-- 开发可随时暂停（safe pause）
-- 可从最近的 Artifact 锚点继续，而非从头再来
-
-### 🔁 需求变更可控
-
-- 用户无需填写表单
-- 自然语言 → ChangeRequest → PRD 新版本
-- 内置「方向性变更判断 SOP」
-
-### 📄 生产级 SOP
-
-- PRD Meta 强校验
-- 版本继承关系清晰
-- 变更来源可追溯
+1. **端到端虚拟开发团队支持**：PM、PJM、UX/UI 设计、架构师、前端/后端、QA  
+2. **文档驱动流程**：所有需求和 PRD 都通过 Artifact 管理，可追溯  
+3. **智能项目初始化**：自动创建 `$HOME/openclaw_workspace/project-{ProjectName}` 目录  
+4. **PRD 与目录无缝衔接**：PRD 输出后自动写入项目目录，更新 README 占位符  
+5. **智能变更处理**：小版本（v1.x）和主版本（v2.0）区分需求扩展和方向性变更  
+6. **可配置运行环境**：domain_context / language / tone  
 
 ---
 
-## 🧱 系统架构概览
+## 安装与配置
+
+```bash
+# 克隆仓库
+git clone https://github.com/<your-username>/artifact-driven-dev-team.git
+cd artifact-driven-dev-team
+
+# 安装 OpenClaw >=0.5.0
+pip install openclaw>=0.5.0
+
+# 可选：自定义工作目录
+export OPENCLAW_WORKSPACE=~/openclaw_workspace
+````
+
+> 默认工作目录为 `~/openclaw_workspace`，用于存放自动创建的项目文件夹和日志。
+
+---
+
+## 核心概念
+
+* **Agent**：虚拟团队成员，每个角色有明确输入/输出 Artifact
+* **Artifact**：文档或数据单元，如 `PRD`、`RawIdea`、`ChangeRequest`
+* **Workflow Hooks**：自动化脚本，在特定阶段执行操作
+* **Meta 区块**：PRD 文档首个章节，包含 Project Name、版本、作者等信息
+
+---
+
+## 工作流程
+
+```mermaid
+flowchart TD
+    U[用户提交需求] --> PM[PM 生成 PRD]
+    PM --> BHook[Before Hook: 创建文件夹 + README]
+    BHook --> PRDFile[After Hook: 写入 PRD + 更新 README]
+    PRDFile --> Dev[UX/UI/前后端/QA 执行开发与验收]
+```
+
+**说明**：
+
+1. 用户提交 **RawIdea / ChangeRequest**
+2. PM Agent 生成 PRD（包含 Meta 区块）
+3. Before Hook 自动创建项目文件夹和 README.md
+4. After Hook 写入 PRD 并更新 README 占位符
+5. 后续团队 Agent 基于 Artifact 执行开发和验收
+
+---
+
+## 目录结构（示例）
 
 ```text
-用户（自然语言）
-        ↓
-     PM Agent
-        ↓
-   标准化 Artifact
-(PRD / ChangeRequest / Backlog ...)
-        ↓
-  其他专业 Agent
+artifact-driven-dev-team/
+├─ agents/
+│  ├─ architect.yaml
+│  ├─ backend.yaml
+│  ├─ frontend.yaml
+│  ├─ pjm.yaml
+│  ├─ pm.yaml
+│  ├─ qa.yaml
+│  ├─ ui.yaml
+│  └─ ux.yaml
+├─ docs/
+│  ├─ pm_conversation_templates.md
+│  └─ pm_internal_sop.md
+├─ examples/
+│  ├─ basic_run.md
+│  └─ custom_agent_override.md
+├─ LICENSE
+├─ README.md
+├─ README_zh.md
+├─ artifacts.yaml
+├─ registry.yaml
+├─ skill.yaml
+├─ system_prompt.md
+└─ $OPENCLAW_WORKSPACE/
+    └─ project-{ProjectName}/
+        ├─ README.md       # 自动生成，包含 PRD 占位符
+        └─ project_prd.md  # PRD 文件
+```
 
+---
 
-🗂️ 核心 Artifacts
-| Artifact      | 说明                    |
-| ------------- | --------------------- |
-| PRD           | 产品需求文档（带 Meta 校验）     |
-| ChangeRequest | 需求变更请求（系统自动生成）        |
-| Backlog       | 任务拆解清单                |
-| Design Specs  | UX / UI / API / DB 设计 |
-| TestReport    | 测试与验收结果               |
+## Agents 介绍
 
+| Agent            | 职责                 |
+| ---------------- | ------------------ |
+| PM               | 产品经理，生成 PRD，处理需求变更 |
+| PJM              | 项目经理，协调开发进度        |
+| UXDesigner       | 用户体验设计，生成原型与用户流程   |
+| UIDesigner       | UI 设计师，生成界面设计      |
+| Architect        | 系统架构设计             |
+| BackendEngineer  | 后端开发               |
+| FrontendEngineer | 前端开发               |
+| QA               | 测试与验收              |
 
-🔄 会话状态模型
-Skill 在运行中始终维护以下三种状态之一：
+---
 
-active_dev：正在开发
-paused_dev：开发已暂停（安全）
-closed_dev：当前开发已结束
+## Artifacts 说明
 
-开发锚点（Development Anchor）
-开发进度始终绑定到最近的一个稳定 Artifact，例如：
+| Artifact      | 描述                          |
+| ------------- | --------------------------- |
+| RawIdea       | 用户原始想法或需求                   |
+| ChangeRequest | 用户需求变更请求                    |
+| PRD           | 产品需求文档（Markdown），包含 Meta 区块 |
+| README.md     | 项目说明文件，自动生成，占位符包含 PRD 文件路径  |
 
-已批准的 PRD
+---
 
-草稿状态的 PRD
+## Hook 自动化功能
 
-待确认的 ChangeRequest
+* **Before Stage Hook (PM)**：自动创建项目文件夹、生成 README、记录日志
+* **After Stage Hook (PM)**：写入 PRD 文件、更新 README 占位符
 
-这是恢复开发的唯一依据。
+---
 
-🧠 需求变更机制
-用户不需要填写 ChangeRequest。
+## 开发与扩展
 
-系统流程如下：
+1. 自定义 Agent：在 `agents/` 文件夹添加 YAML
+2. 扩展 Artifact 类型或增加 Hook 脚本
+3. agent_policy 支持 full_replace / partial_extend
 
-用户自然语言提出修改想法
+---
 
-PM 识别为潜在需求变更
+## 使用示例
 
-系统自动生成 ChangeRequest（draft）
+### 示例 1：Basic Run
 
-用户确认
+```yaml
+RawIdea:
+  title: "自动化 PRD 生成演示"
+  description: "系统自动生成 PRD 并创建项目文件夹，生成 README 占位符"
+```
 
-触发 PRD 新版本或拒绝变更
+运行：
 
-🚀 使用方式
-1️⃣ 提出想法
-“我想做一个可以记录个人习惯的应用。”
+```bash
+openclaw run skill artifact-driven-dev-team --input RawIdea.yaml
+```
 
-2️⃣ 正常聊天
-无需模板、无需表单。
+结果：
 
-3️⃣ 查看生成的 PRD
-确认或提出修改意见。
+```
+$HOME/openclaw_workspace/project-自动化_PRD_生成演示/
+├─ README.md
+└─ project_prd.md
+```
 
-4️⃣ 随时暂停
-“我们先聊点别的。”
+---
 
-5️⃣ 随时恢复
-“继续刚才那个项目。”
+### 示例 2：自定义 PM Agent
 
-📁 推荐目录结构
-.
-├── agents/
-│   ├── pm.yaml
-│   └── ...
-├── artifacts.yaml
-├── registry.yaml
-├── docs/
-│   ├── pm_internal_sop.md
-│   └── pm_conversation_templates.md
-├── templates/
-│   ├── PRD_TEMPLATE.md
-│   └── ChangeRequest.md
-└── README.md
-🔮 可扩展方向
-多项目并行支持
+在 `agents/pm_custom.yaml`:
 
-外部系统集成（Jira / GitHub）
+```yaml
+role: Product Manager
+stage: Planning
+input:
+  - RawIdea
+output:
+  - PRD
+prompt: |
+  你是自定义 PM Agent。
+  输出 PRD，调用 Hook 创建项目文件夹，输出必须包含 Meta 区块。
+```
 
-变更频率与方向分析
+运行：
 
-自动回归测试触发
+```bash
+openclaw run skill artifact-driven-dev-team --override agents/pm_custom.yaml --input RawIdea.yaml
+```
 
-🧠 设计哲学
-用户只管说人话，
-系统负责守住结构。
+---
 
-表面自由，对内严谨。
+## 可视化流程图
 
-📜 License
-MIT License
+```mermaid
+flowchart TD
+    U[用户提交需求] --> PM[PM 生成 PRD]
+    PM --> BHook[Before Hook: 创建项目文件夹 + README]
+    BHook --> PRDFile[After Hook: 写入 PRD + 更新 README]
+    PRDFile --> Dev[UX/UI/前后端/QA 执行开发与验收]
+```
+
+---
+
+## 兼容性
+
+* OpenClaw >= 0.5.0
+* 支持平台：Local / Cloud / Embedded
+
+---
+
+## 许可证
+
+MIT License. 详情请参见 [LICENSE](LICENSE)。
+
+---
+
+## FAQ
+
+**Q1:** 可以自定义项目文件夹位置吗？
+
+> 可通过环境变量 `OPENCLAW_WORKSPACE` 自定义。
+
+**Q2:** PRD Meta 中 Project Name 与 RawIdea.title 不一致怎么办？
+
+> Hook 优先使用 PRD Meta 中 Project Name，RawIdea.title 仅作 fallback。
+
+**Q3:** 支持多人并行生成 PRD 吗？
+
+> 支持，workflow_policy.allow_parallel_execution: true。
+
+**Q4:** 如何处理 ChangeRequest？
+
+> PM 根据 SOP 判断生成小版本（v1.x）或主版本（v2.0），hook 自动写入新文件。
+
+```
+
+---
+
+这份 README_zh.md 具备以下特点：
+
+- **流程可视化**：Mermaid 流程图展示从 RawIdea → PM → Hook → 开发  
+- **目录结构清晰**：展示仓库结构和生成的项目目录  
+- **完整示例**：basic_run 和自定义 Agent  
+- **详细说明**：Agents、Artifacts、Hook、安装、FAQ  
+- GitHub 页面可直接渲染 Mermaid 流程图  
+
+---
+
+我可以帮你再生成一份 **带 PNG 图片版本的可视化流程图和项目目录结构图**，直接放 README 里，GitHub 页面显示更直观，不依赖 Mermaid 渲染。  
+
+你希望我生成吗？
+```
