@@ -1,12 +1,28 @@
-name: artifact-dev-team
-version: 1.0.0
-description: Artifact-driven virtual software development team
+name: artifact-driven-dev-team
+display_name: Artifact-driven Virtual Dev Team
 
-includes:
+version: 1.0.0
+schema_version: 1.0
+
+description: >
+  A reusable, artifact-driven virtual software development team skill.
+  It provides a full workflow from product idea to QA acceptance,
+  powered by structured agents and document-based orchestration.
+
+author: LangGPT
+license: MIT
+
+# =========================
+# 1. Entry & Core Files
+# =========================
+entry:
   system_prompt: system_prompt.md
   registry: registry.yaml
   artifacts: artifacts.yaml
 
+# =========================
+# 2. Built-in Agents
+# =========================
 agents:
   builtin:
     - PM
@@ -18,6 +34,75 @@ agents:
     - FrontendEngineer
     - QA
 
-override_policy:
-  allow_agent_override: true
-  allow_prompt_override: true
+  directory: agents/
+
+# =========================
+# 3. Agent Template Policy
+# =========================
+agent_policy:
+  builtin_templates: required
+  allow_override: true
+  override_strategy:
+    - full_replace        # 完整替换 Agent Prompt
+    - partial_extend      # 在原 Prompt 基础上扩展
+
+# =========================
+# 4. Artifact Policy
+# =========================
+artifact_policy:
+  default_format: markdown
+  enforce_schema: true
+  versioning:
+    enabled: true
+    strategy: semver
+  immutability:
+    approved_readonly: true
+
+# =========================
+# 5. Workflow Policy
+# =========================
+workflow_policy:
+  enforce_stage_order: true
+  allow_parallel_execution: true
+  allow_skip_stage: false
+
+# =========================
+# 6. Runtime Configuration (Optional)
+# =========================
+runtime:
+  configurable:
+    - domain_context       # e.g. fintech / edu / saas
+    - language             # zh / en
+    - tone                 # concise / verbose
+  defaults:
+    language: zh
+    tone: concise
+
+# =========================
+# 7. Compatibility
+# =========================
+compatibility:
+  openclaw_min_version: ">=0.5.0"
+  platforms:
+    - local
+    - cloud
+    - embedded
+
+# =========================
+# 8. Installation Hooks (Optional)
+# =========================
+hooks:
+  on_install:
+    - validate_environment
+    - init_artifact_store
+  on_uninstall:
+    - cleanup_temp_artifacts
+
+# =========================
+# 9. Documentation
+# =========================
+docs:
+  readme: README.md
+  examples:
+    - examples/basic_run.md
+    - examples/custom_agent_override.md
