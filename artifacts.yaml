@@ -1,54 +1,56 @@
 
 @@ -25,75 +25,100 @@ global:
 # =========================
-# =========================
-# 2. Artifact Definitions
 # 2. Artifact Definitions
 # =========================
-# =========================
-artifacts:
 artifacts:
 
-
-  ProjectContext:
   ProjectContext:
     description: >
-    description: >
-      项目全局上下文，作为整个流水线的唯一事实源（Single Source of Truth）。
       项目全局上下文，作为整个流水线的唯一事实源（Single Source of Truth）。
       包含项目名称、物理路径、版本信息等。
-      包含项目名称、物理路径、版本信息等。
-    schema:
     schema:
       ProjectName:
-      ProjectName:
-        type: string
         type: string
         description: 项目名称（用于展示与标识）
-        description: 项目名称（用于展示与标识）
-      ProjectPath:
       ProjectPath:
         type: string
-        type: string
-        description: 项目在文件系统中的绝对路径
         description: 项目在文件系统中的绝对路径
       Version:
-      Version:
-        type: string
         type: string
         description: PRD 版本号（如 v1.0 / v1.1）
-        description: PRD 版本号（如 v1.0 / v1.1）
-      CreatedAt:
       CreatedAt:
         type: string
-        type: string
-        description: 项目创建时间（ISO8601）
         description: 项目创建时间（ISO8601）
       Capabilities:
-      Capabilities:
-        type: object
         type: object
         description: 测试/运行能力与工具可用性记录（可选）
+      GovernanceMode:
+        type: string
+        description: 项目控制权模式（human-in-loop 或 autopilot）
+      GovernancePhase:
+        type: string
+        description: 当前治理阶段（需求收集/阶段推进/交付）
+
+  ProjectContext:
+    description: >
+      项目全局上下文，作为整个流水线的唯一事实源（Single Source of Truth）。
+      包含项目名称、物理路径、版本信息等。
+    schema:
+      ProjectName:
+        type: string
+        description: 项目名称（用于展示与标识）
+      ProjectPath:
+        type: string
+        description: 项目在文件系统中的绝对路径
+      Version:
+        type: string
+        description: PRD 版本号（如 v1.0 / v1.1）
+      CreatedAt:
+        type: string
+        description: 项目创建时间（ISO8601）
+      Capabilities:
+        type: object
         description: 测试/运行能力与工具可用性记录（可选）
       GovernanceMode:
         type: string
@@ -59,52 +61,80 @@ artifacts:
 
 
   # -------- Input --------
-  # -------- Input --------
-  RawIdea:
   RawIdea:
     description: User provided raw product idea
-    description: User provided raw product idea
-    producer: User
     producer: User
     consumers: [PM]
-    consumers: [PM]
-    status_flow: [draft]
     status_flow: [draft]
 
 
   ChangeRequest:
-  ChangeRequest:
-    description: Requirement change request submitted during development
     description: Requirement change request submitted during development
     producer: User
-    producer: User
-    consumers: [PM]
     consumers: [PM]
     status_flow: [draft, approved, rejected]
-    status_flow: [draft, approved, rejected]
-    required_sections:
     required_sections:
       - 变更背景
-      - 变更背景
-      - 新增或修改的需求
       - 新增或修改的需求
       - 变更原因
-      - 变更原因
       - 紧急程度
-      - 紧急程度
-
-
-  Capability:
+  
   Capability:
     description: Test environment and tooling capability declaration
-    description: Test environment and tooling capability declaration
-    producer: PM
     producer: PM
     consumers: [QA]
-    consumers: [QA]
-    status_flow: [draft, approved]
     status_flow: [draft, approved]
 
+
+  GovernanceState:
+    description: Governance mode/state machine snapshot
+    producer: PM
+    consumers: [System, User]
+    status_flow: [draft, approved]
+    schema:
+      mode:
+        type: string
+        description: human-in-loop 或 autopilot
+      phase:
+        type: string
+        description: 需求收集 / 阶段推进 / 交付
+      stage_gate:
+        type: string
+        description: 当前是否允许进入下一阶段（wait/continue）
+      updated_at:
+        type: string
+        description: 状态更新时间（ISO8601）
+
+  ExecResult:
+    description: Standardized execution result for shell commands
+    producer: System
+    consumers: [QA, PM]
+    status_flow: [completed]
+    schema:
+      command:
+        type: string
+        description: 原始执行命令
+      exit_code:
+        type: integer
+        description: 进程退出码
+      stdout:
+        type: string
+        description: 标准输出
+      stderr:
+        type: string
+        description: 标准错误
+      interpretation:
+        type: string
+        description: 退出码语义解释（如 grep 未匹配视为非失败）
+      is_failure:
+        type: boolean
+        description: 是否为真实失败（而非无匹配/无进程）
+
+  Capability:
+    description: Test environment and tooling capability declaration
+    producer: PM
+    consumers: [QA]
+    status_flow: [draft, approved]
 
   GovernanceState:
     description: Governance mode/state machine snapshot
