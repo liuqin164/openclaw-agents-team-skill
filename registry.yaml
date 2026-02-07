@@ -93,6 +93,18 @@ triggers:
     hooks:
       - finalize_planning_stage
 
+  - agent: BackendEngineer
+    when:
+      artifact_completed: BackendImplementation
+    produce:
+      - AgentProgressReport
+
+  - agent: FrontendEngineer
+    when:
+      artifact_completed: FrontendImplementation
+    produce:
+      - AgentProgressReport
+
   # ---- Design ----
   - agent: UXDesigner
     when:
@@ -262,13 +274,45 @@ hooks:
 
   finalize_implementation_stage:
     description: >
-      Create ImplementationStageSummary as the single completion anchor.
+      Aggregate AgentProgressReport and create
+      ImplementationStageSummary with readiness snapshot.
     action: |
+      reports = list_artifacts(type="AgentProgressReport")
+
+      completed_roles = []
+      produced_artifacts = []
+      blockers = []
+
+      for r in reports:
+          role = r.get("role")
+          if role:
+              completed_roles.append(role)
+
+          produced_artifacts.extend(
+              r.get("produced_artifacts", [])
+          )
+
+          if r.get("blockers"):
+              blockers.extend(r["blockers"])
+
+      qa_ready = len(blockers) == 0
+
       create_artifact(
         name="ImplementationStageSummary",
-        status="completed"
+        status="completed",
+        content={
+          "completed_roles": sorted(set(completed_roles)),
+          "produced_artifacts": sorted(set(produced_artifacts)),
+          "blockers": blockers,
+          "qa_ready": qa_ready
+        }
       )
+
       print("✅ Implementation stage completed")
+      print(f"📦 Roles completed: {completed_roles}")
+      print(f"📄 Artifacts produced: {produced_artifacts}")
+      print(f"🚧 Blockers: {blockers}")
+      print(f"🧪 QA ready: {qa_ready}")
 
   evaluate_change_request:
     description: >
