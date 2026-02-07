@@ -1,19 +1,23 @@
-version: 1.1.0
+version: 1.2.0
 type: workflow-registry
 name: artifact-driven-dev-team
 
 description: >
   Artifact-driven virtual software development team workflow.
-  Defines stage ownership, artifact-driven progression,
-  and prevents pipeline interruption.
+  Defines deterministic stage ownership, artifact responsibility,
+  and controlled rollback / change propagation.
 
 # =========================
-# 1. Stages（阶段定义 + Owner）
+# 1. Stages（阶段 + 责任边界）
 # =========================
 stages:
+
   - name: Planning
     order: 1
     owner: PM
+    produces:
+      - PRD
+      - Backlog
     completion_condition:
       - PRD.approved
       - Backlog.approved
@@ -21,6 +25,11 @@ stages:
   - name: Design
     order: 2
     owner: Architect
+    produces:
+      - UserFlow
+      - UIDesignSpec
+      - APISpec
+      - DBSchema
     completion_condition:
       - UserFlow.approved
       - UIDesignSpec.approved
@@ -29,6 +38,9 @@ stages:
   - name: Implementation
     order: 3
     owner: BackendEngineer
+    produces:
+      - BackendImplementation
+      - FrontendImplementation
     completion_condition:
       - BackendImplementation.completed
       - FrontendImplementation.completed
@@ -36,11 +48,14 @@ stages:
   - name: QA
     order: 4
     owner: QA
+    produces:
+      - TestReport
+      - BugReport
     completion_condition:
       - TestReport.approved
 
 # =========================
-# 2. Agents（参与角色）
+# 2. Agents（角色绑定阶段）
 # =========================
 agents:
   - name: PM
@@ -76,7 +91,7 @@ agents:
     enabled: true
 
 # =========================
-# 3. Triggers（Artifact 驱动）
+# 3. Triggers（唯一主驱动）
 # =========================
 triggers:
 
@@ -126,11 +141,13 @@ triggers:
   - agent: PM
     when:
       artifact_created: ChangeRequest
+    effect:
+      interrupt_stage: Planning
     hooks:
       - evaluate_change_request
 
 # =========================
-# 4. Stage Transition（阶段推进规则）
+# 4. Stage Transition（严格推进）
 # =========================
 stage_transition:
   - from: Planning
@@ -146,30 +163,36 @@ stage_transition:
     when: stage_completed
 
 # =========================
-# 5. Parallelism（并行策略）
+# 5. Parallelism（安全并行）
 # =========================
 parallelism:
   allowed:
     - UXDesigner
     - Architect
-
   blocked:
     - QA
 
 # =========================
-# 6. Failure & Rollback Policy
+# 6. Failure & Rollback Policy（状态机）
 # =========================
 failure_policy:
+
   on_artifact_rejected:
     action: rollback_stage
-    rollback_to_stage_owner: true
+    rollback:
+      to_stage: artifact.producer_stage
+      artifact_state: draft
 
   on_bug_reported:
     action: reopen_stage
-    target_stage: Implementation
+    reopen:
+      stage: Implementation
+      invalidate:
+        - BackendImplementation
+        - FrontendImplementation
 
 # =========================
-# 7. Skill Keepalive（防止“自动退化”）
+# 7. Keepalive（防模型退化）
 # =========================
 keepalive:
   mode: artifact-driven
@@ -180,47 +203,16 @@ keepalive:
   heartbeat_log: true
 
 # =========================
-# 8. Hooks（生命周期 Hook）
+# 8. Hooks（仅声明，不实现）
 # =========================
 hooks:
 
   before_prd_create:
+    scope: workflow
     description: >
-      Create project folder and register project_path
-      before PRD generation.
-    action: |
-      import os, pathlib, re
-      from datetime import datetime
-
-      workspace = os.path.expanduser(
-        os.environ.get("OPENCLAW_WORKSPACE", "~/openclaw_workspace")
-      )
-
-      raw = input_artifacts.get("RawIdea", {})
-      project_name = raw.get("title", "default_project")
-      safe = re.sub(r'[^a-zA-Z0-9_]', '_', project_name)
-
-      base = f"project-{safe}"
-      path = os.path.join(workspace, base)
-      i = 1
-      final = path
-      while os.path.exists(final):
-          i += 1
-          final = f"{path}-{i}"
-
-      pathlib.Path(final).mkdir(parents=True, exist_ok=True)
-
-      context["project_path"] = final
-      context["project_name"] = safe
-
-      with open(os.path.join(final, "README.md"), "w", encoding="utf-8") as f:
-          f.write(f"# {safe}\n\n")
-          f.write("PRD: project_prd.md\n")
-
-      print(f"📁 Project initialized at {final}")
+      Initialize project context before PRD generation.
 
   evaluate_change_request:
+    scope: workflow
     description: >
-      Evaluate ChangeRequest and decide PRD versioning strategy.
-    action: |
-      print("🔄 ChangeRequest evaluation triggered")
+      Evaluate ChangeRequest and determine PRD versioning strategy.
