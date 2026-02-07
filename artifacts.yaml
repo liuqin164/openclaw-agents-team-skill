@@ -1,11 +1,11 @@
-version: 1.0.1
+version: 1.1.0
 type: artifact-schema
 name: artifact-driven-dev-team-artifacts
 
 description: >
   Artifact protocol definitions for an artifact-driven virtual
   software development team running on OpenClaw.
-  Supports auto project folder creation, PRD binding, and full workflow artifact validation.
+  Fully aligned with workflow-registry stage transitions.
 
 # =========================
 # 1. Global Artifact Rules
@@ -22,22 +22,6 @@ global:
     approved_artifact_readonly: true
     new_version_required_on_change: true
 
-  auto_hooks:
-    # 当生成关键 Artifact 时触发自动化流程
-    PRD:
-      after_create:
-        - create_project_folder
-        - update_readme_with_prd
-    BackendImplementation:
-      after_create:
-        - create_backend_folder
-    FrontendImplementation:
-      after_create:
-        - create_frontend_folder
-    TestReport:
-      after_create:
-        - create_qa_report_placeholder
-
 # =========================
 # 2. Artifact Definitions
 # =========================
@@ -47,22 +31,14 @@ artifacts:
   RawIdea:
     description: User provided raw product idea
     producer: User
-    consumers:
-      - PM
-    format: markdown
-    status_flow:
-      - draft
+    consumers: [PM]
+    status_flow: [draft]
 
   ChangeRequest:
     description: Requirement change request submitted during development
     producer: User
-    consumers:
-      - PM
-    format: markdown
-    status_flow:
-      - draft
-      - approved
-      - rejected
+    consumers: [PM]
+    status_flow: [draft, approved, rejected]
     required_sections:
       - 变更背景
       - 新增或修改的需求
@@ -73,15 +49,8 @@ artifacts:
   PRD:
     description: Product Requirement Document
     producer: PM
-    consumers:
-      - PJM
-      - UXDesigner
-      - Architect
-    format: markdown
-    status_flow:
-      - draft
-      - approved
-      - rejected
+    consumers: [PJM, UXDesigner, Architect]
+    status_flow: [draft, approved, rejected]
     required_sections:
       - Meta
       - 项目背景
@@ -103,7 +72,7 @@ artifacts:
         - 所属主线（Track）
         - 上一版本 PRD
         - 变更类型
-        - Project Name  # 新增字段，便于目录创建
+        - Project Name
 
   Backlog:
     description: Task backlog derived from PRD
@@ -115,99 +84,81 @@ artifacts:
       - BackendEngineer
       - FrontendEngineer
       - QA
-    format: markdown
-    status_flow:
-      - draft
-      - approved
+    status_flow: [draft, approved]
+
+  PlanningStageSummary:
+    description: Planning stage completion anchor
+    producer: PM
+    consumers: [System]
+    status_flow: [completed]
 
   # -------- Design --------
   UserFlow:
     description: User interaction flow definition
     producer: UXDesigner
-    consumers:
-      - UIDesigner
-      - Architect
-    format: markdown
-    status_flow:
-      - draft
-      - approved
+    consumers: [UIDesigner, Architect]
+    status_flow: [draft, approved]
 
   UIDesignSpec:
-    description: UI visual design and component specification
+    description: UI design specification
     producer: UIDesigner
-    consumers:
-      - FrontendEngineer
-    format: markdown
-    status_flow:
-      - draft
-      - approved
+    consumers: [FrontendEngineer]
+    status_flow: [draft, approved]
 
   APISpec:
-    description: API specification (OpenAPI / Swagger style)
+    description: API specification
     producer: Architect
-    consumers:
-      - BackendEngineer
-      - FrontendEngineer
-    format: markdown
-    status_flow:
-      - draft
-      - approved
+    consumers: [BackendEngineer, FrontendEngineer]
+    status_flow: [draft, approved]
 
   DBSchema:
     description: Database schema definition
     producer: Architect
-    consumers:
-      - BackendEngineer
-    format: markdown
-    status_flow:
-      - draft
-      - approved
+    consumers: [BackendEngineer]
+    status_flow: [draft, approved]
+
+  DesignStageSummary:
+    description: Design stage completion anchor
+    producer: Architect
+    consumers: [System]
+    status_flow: [completed]
 
   # -------- Implementation --------
   BackendImplementation:
-    description: Backend implementation delivery
+    description: Backend delivery bound to project backend directory
     producer: BackendEngineer
-    consumers:
-      - QA
-    format: markdown
-    status_flow:
-      - completed
-    auto_hooks:
-      - create_backend_folder
+    consumers: [QA]
+    status_flow: [completed]
+    binding:
+      directory: backend/
 
   FrontendImplementation:
-    description: Frontend implementation delivery
+    description: Frontend delivery bound to project frontend directory
     producer: FrontendEngineer
-    consumers:
-      - QA
-    format: markdown
-    status_flow:
-      - completed
-    auto_hooks:
-      - create_frontend_folder
+    consumers: [QA]
+    status_flow: [completed]
+    binding:
+      directory: frontend/
+
+  ImplementationStageSummary:
+    description: Implementation stage completion anchor
+    producer: BackendEngineer
+    consumers: [System]
+    status_flow: [completed]
 
   # -------- QA --------
   TestReport:
-    description: QA test report and acceptance result
+    description: QA test and acceptance report
     producer: QA
-    consumers:
-      - User
-      - PM
-    format: markdown
-    status_flow:
-      - draft
-      - approved
-      - rejected
-    auto_hooks:
-      - create_qa_report_placeholder
+    consumers: [User, PM]
+    status_flow: [draft, approved, rejected]
 
   BugReport:
     description: Bug report generated during QA
     producer: QA
-    consumers:
-      - BackendEngineer
-      - FrontendEngineer
-    format: markdown
+    consumers: [BackendEngineer, FrontendEngineer]
     status_flow:
       - draft
-      - completed
+      - approved
+      - fixed
+      - closed
