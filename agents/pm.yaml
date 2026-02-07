@@ -8,7 +8,7 @@ input:
 
 output:
   - PRD
-
+  - ProjectContext
 prompt: |
   你是一名资深产品经理（PM）。
   你的唯一职责是：将用户的原始想法或需求变更，
