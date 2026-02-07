@@ -1,32 +1,31 @@
 
 <p align="right">
-  <b>🇨🇳 简体中文</b> | <a href="README.md">🇺🇸 English</a>
+  <a href="README_zh.md">🇨🇳 Chinese</a> | <b>🇺🇸 English</b>
 </p>
 
-# OpenClaw Dev Team（devteam）
+# OpenClaw Dev Team (devteam)
 
-![版本](https://img.shields.io/badge/version-1.0.5-blue)
-![许可证](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-1.0.5-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-## 目录
+## Table of Contents
 
-- [项目简介](#项目简介)
-- [功能特色](#功能特色)
-- [安装与配置](#安装与配置)
-- [核心概念](#核心概念)
-- [工作流程](#工作流程)
-- [目录结构](#目录结构)
-- [Agents 介绍](#agents-介绍)
-- [Artifacts 说明](#artifacts-说明)
-- [Hook 自动化功能](#hook-自动化功能)
-- [开发与扩展](#开发与扩展)
-- [使用示例](#使用示例)
-- [兼容性](#兼容性)
-- [许可证](#许可证)
+- [Project Overview](#project-overview)
+- [Key Features](#key-features)
+- [Installation & Setup](#installation--setup)
+- [Core Concepts](#core-concepts)
+- [Workflow](#workflow)
+- [Directory Structure](#directory-structure)
+- [Agents Overview](#agents-overview)
+- [Artifacts Overview](#artifacts-overview)
+- [Hook Automation](#hook-automation)
+- [Development & Extension](#development--extension)
+- [Usage Examples](#usage-examples)
+- [Compatibility](#compatibility)
+- [License](#license)
 - [FAQ](#faq)
 
 ---
-
 ## 项目简介
 
 **OpenClaw Dev Team** 是一个以 Artifact 为核心的多 Agent 开发流水线，让「想法 → PRD → 设计 → 实现 → QA」全流程可追溯、可审计、可自动化。
