@@ -95,10 +95,7 @@ hooks:
         workspace = os.environ.get("OPENCLAW_WORKSPACE", "~/openclaw_workspace")
         workspace = os.path.expanduser(workspace)
 
-        prd_meta = output_artifacts.get("PRD", {}).get("meta", {})
-        project_name = prd_meta.get("Project Name", None)
-        if not project_name:
-            project_name = input_artifacts.get("RawIdea", {}).get("title", "default_project")
+        project_name = input_artifacts.get("RawIdea", {}).get("title", "default_project")
 
         safe_title = re.sub(r'[\\/:*?"<>| ]', '_', project_name.strip())
         base_folder_name = f"project-{safe_title}"
@@ -129,26 +126,24 @@ hooks:
         print(f"✅ 项目文件夹已创建: {final_path}")
         print(f"📄 README.md 已生成，包含 PRD 占位符")
 
-from datetime import datetime
+        project_context = {
+            "ProjectName": safe_title,
+            "ProjectPath": final_path,
+            "Version": "v1.0",
+            "CreatedAt": datetime.now().isoformat()
+        }
 
-# 构造 ProjectContext artifact
-project_context = {
-    "ProjectName": safe_title,
-    "ProjectPath": final_path,
-    "Version": "v1.0",
-    "CreatedAt": datetime.now().isoformat()
-}
+        output_artifacts["ProjectContext"] = {
+            "content": project_context,
+            "meta": {
+                "producer": "PM",
+                "stage": "Planning"
+            }
+        }
 
-# 写入 artifact（OpenClaw 识别）
-output_artifacts["ProjectContext"] = {
-    "content": project_context,
-    "meta": {
-        "producer": "PM",
-        "stage": "Planning"
-    }
-}
-
-print(f"📌 ProjectContext 已生成: {project_context}")
+        print(f"📌 ProjectContext 已生成: {project_context}")
+        context["project_path"] = final_path
+        context["project_name"] = safe_title
 
   after_stage:
     - name: generate_prd_file
@@ -173,8 +168,8 @@ print(f"📌 ProjectContext 已生成: {project_context}")
         project_path = os.path.join(workspace, base_folder_name)
 
         counter = 1
-        final_path = project_path
-        while not os.path.exists(final_path):
+        final_path = context.get("project_path", project_path)
+        while not os.path.exists(final_path) and counter < 20:
             counter += 1
             final_path = f"{project_path}-{counter}"
 

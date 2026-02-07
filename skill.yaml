@@ -1,5 +1,5 @@
-name: artifact-driven-dev-team
-display_name: Artifact-driven Virtual Dev Team
+name: devteam
+display_name: OpenClaw Dev Team
 
 version: 1.1.0
 schema_version: 1.0
@@ -130,6 +130,8 @@ hooks:
     on_install:
       - validate_environment
       - init_artifact_store
+    on_activate:
+      - show_welcome
     on_uninstall:
       - cleanup_temp_artifacts
 
@@ -198,6 +200,32 @@ hooks:
         判断 ChangeRequest 是否需要新 PRD 版本。
       action: |
         print("🔄 ChangeRequest evaluation triggered")
+    show_welcome:
+      description: >
+        Show activation welcome message and usage guidance.
+      action: |
+        print("""
+        👋 欢迎使用 OpenClaw Dev Team（skill: devteam）
+
+        这是一个多 Agent 协作的产品开发流水线，包含：
+        - PM：生成 PRD
+        - UX：设计用户流程
+        - UI：输出界面规范
+        - Backend / Frontend：实现功能
+        - QA：测试与验收
+
+        🚀 快速开始：
+        1. 直接告诉我你的想法，例如：
+           “我想做一个……”
+        2. PM 会自动创建项目目录并生成 PRD
+        3. 流水线会按阶段自动推进
+
+        💡 提示：
+        - 所有项目文件都会保存在 ~/openclaw_workspace/
+        - 你可以随时让我解释当前阶段
+
+        现在可以直接描述你的需求 👇
+        """)
 
 # =========================
 # 7. Runtime
