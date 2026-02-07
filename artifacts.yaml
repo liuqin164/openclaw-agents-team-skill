@@ -1,10 +1,11 @@
-version: 1.0
+version: 1.0.1
 type: artifact-schema
 name: artifact-driven-dev-team-artifacts
 
 description: >
   Artifact protocol definitions for an artifact-driven virtual
   software development team running on OpenClaw.
+  Supports auto project folder creation, PRD binding, and full workflow artifact validation.
 
 # =========================
 # 1. Global Artifact Rules
@@ -20,6 +21,22 @@ global:
   immutability:
     approved_artifact_readonly: true
     new_version_required_on_change: true
+
+  auto_hooks:
+    # 当生成关键 Artifact 时触发自动化流程
+    PRD:
+      after_create:
+        - create_project_folder
+        - update_readme_with_prd
+    BackendImplementation:
+      after_create:
+        - create_backend_folder
+    FrontendImplementation:
+      after_create:
+        - create_frontend_folder
+    TestReport:
+      after_create:
+        - create_qa_report_placeholder
 
 # =========================
 # 2. Artifact Definitions
@@ -53,39 +70,40 @@ artifacts:
       - 紧急程度
 
   # -------- Planning --------
-PRD:
-  description: Product Requirement Document
-  producer: PM
-  consumers:
-    - PJM
-    - UXDesigner
-    - Architect
-  format: markdown
-  status_flow:
-    - draft
-    - approved
-    - rejected
-  required_sections:
-    - Meta
-    - 项目背景
-    - 项目目标
-    - 用户画像
-    - 使用场景
-    - 功能需求
-    - 非功能需求
-    - 不在范围内
-    - 验收标准
+  PRD:
+    description: Product Requirement Document
+    producer: PM
+    consumers:
+      - PJM
+      - UXDesigner
+      - Architect
+    format: markdown
+    status_flow:
+      - draft
+      - approved
+      - rejected
+    required_sections:
+      - Meta
+      - 项目背景
+      - 项目目标
+      - 用户画像
+      - 使用场景
+      - 功能需求
+      - 非功能需求
+      - 不在范围内
+      - 验收标准
 
-  meta_validation:
-    required_fields:
-      - PRD 名称
-      - PRD 版本
-      - PRD 状态
-      - 创建日期
-      - 创建人（Agent）
-      - 所属主线（Track）
-      - 上一版本 PRD
-      - 变更类型
+    meta_validation:
+      required_fields:
+        - PRD 名称
+        - PRD 版本
+        - PRD 状态
+        - 创建日期
+        - 创建人（Agent）
+        - 所属主线（Track）
+        - 上一版本 PRD
+        - 变更类型
+        - Project Name  # 新增字段，便于目录创建
 
   Backlog:
     description: Task backlog derived from PRD
@@ -154,6 +172,8 @@ PRD:
     format: markdown
     status_flow:
       - completed
+    auto_hooks:
+      - create_backend_folder
 
   FrontendImplementation:
     description: Frontend implementation delivery
@@ -163,6 +183,8 @@ PRD:
     format: markdown
     status_flow:
       - completed
+    auto_hooks:
+      - create_frontend_folder
 
   # -------- QA --------
   TestReport:
@@ -176,6 +198,8 @@ PRD:
       - draft
       - approved
       - rejected
+    auto_hooks:
+      - create_qa_report_placeholder
 
   BugReport:
     description: Bug report generated during QA
