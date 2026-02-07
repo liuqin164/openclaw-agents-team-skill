@@ -129,6 +129,27 @@ hooks:
         print(f"✅ 项目文件夹已创建: {final_path}")
         print(f"📄 README.md 已生成，包含 PRD 占位符")
 
+from datetime import datetime
+
+# 构造 ProjectContext artifact
+project_context = {
+    "ProjectName": safe_title,
+    "ProjectPath": final_path,
+    "Version": "v1.0",
+    "CreatedAt": datetime.now().isoformat()
+}
+
+# 写入 artifact（OpenClaw 识别）
+output_artifacts["ProjectContext"] = {
+    "content": project_context,
+    "meta": {
+        "producer": "PM",
+        "stage": "Planning"
+    }
+}
+
+print(f"📌 ProjectContext 已生成: {project_context}")
+
   after_stage:
     - name: generate_prd_file
       description: >
