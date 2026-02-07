@@ -17,6 +17,12 @@ prompt: |
   - 页面 / 状态节点
   - 跳转与触发条件
 
+  注意：
+  - UserFlow 文件必须写入 PM 创建的项目目录
+  - 自动识别项目目录（支持带序号的项目路径）
+  - 自动记录 UserFlow 生成日志
+  - 保持与 PRD 版本一致的目录和命名规则
+
 rules:
   - 不涉及视觉风格
   - 不设计 UI 组件
@@ -24,3 +30,47 @@ rules:
 
 constraints:
   - output_format: markdown
+
+hooks:
+  after_stage:
+    - name: generate_userflow_file
+      description: >
+        在 UXDesigner 根据 PRD 生成 UserFlow 后，将 UserFlow 写入项目目录
+        并记录日志
+      action: |
+        import os
+        import re
+        from datetime import datetime
+
+        workspace = os.environ.get("OPENCLAW_WORKSPACE", "~/openclaw_workspace")
+        workspace = os.path.expanduser(workspace)
+
+        prd_meta = input_artifacts.get("PRD", {}).get("meta", {})
+        project_name = prd_meta.get("Project Name", None)
+        if not project_name:
+            project_name = "default_project"
+
+        safe_title = re.sub(r'[\\/:*?"<>| ]', '_', project_name.strip())
+        base_folder_name = f"project-{safe_title}"
+        project_path = os.path.join(workspace, base_folder_name)
+
+        # 支持带序号的项目路径
+        counter = 1
+        final_path = project_path
+        while not os.path.exists(final_path):
+            counter += 1
+            final_path = f"{project_path}-{counter}"
+
+        userflow_content = output_artifacts.get("UserFlow", {}).get("content", "")
+        userflow_file_name = "project_userflow.md"
+        userflow_file_path = os.path.join(final_path, userflow_file_name)
+
+        with open(userflow_file_path, "w", encoding="utf-8") as f:
+            f.write(userflow_content)
+
+        # 写日志
+        log_file = os.path.join(workspace, "project_creation.log")
+        with open(log_file, "a", encoding="utf-8") as log:
+            log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | UserFlow 已生成: {userflow_file_path}\n")
+
+        print(f"📄 UserFlow 文件已生成: {userflow_file_path}")
