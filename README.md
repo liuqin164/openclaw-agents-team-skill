@@ -1,108 +1,122 @@
 
 <p align="right">
-  <a href="README_zh.md">🇨🇳 简体中文</a> | <b>🇺🇸 English</b>
+  <b>🇨🇳 简体中文</b> | <a href="README.md">🇺🇸 English</a>
 </p>
 
-# Artifact-Driven Virtual Development Team Skill
+# OpenClaw Dev Team（devteam）
 
-![Version](https://img.shields.io/badge/version-1.0.5-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+![版本](https://img.shields.io/badge/version-1.0.5-blue)
+![许可证](https://img.shields.io/badge/license-MIT-green)
 
-## Table of Contents
+## 目录
 
-- [Project Overview](#project-overview)
-- [Key Features](#key-features)
-- [Installation & Setup](#installation--setup)
-- [Core Concepts](#core-concepts)
-- [Workflow](#workflow)
-- [Directory Structure](#directory-structure)
-- [Agents Overview](#agents-overview)
-- [Artifacts Overview](#artifacts-overview)
-- [Hook Automation](#hook-automation)
-- [Development & Extension](#development--extension)
-- [Usage Examples](#usage-examples)
-- [Compatibility](#compatibility)
-- [License](#license)
+- [项目简介](#项目简介)
+- [功能特色](#功能特色)
+- [安装与配置](#安装与配置)
+- [核心概念](#核心概念)
+- [工作流程](#工作流程)
+- [目录结构](#目录结构)
+- [Agents 介绍](#agents-介绍)
+- [Artifacts 说明](#artifacts-说明)
+- [Hook 自动化功能](#hook-自动化功能)
+- [开发与扩展](#开发与扩展)
+- [使用示例](#使用示例)
+- [兼容性](#兼容性)
+- [许可证](#许可证)
 - [FAQ](#faq)
 
 ---
 
-## Project Overview
+## 项目简介
 
-The `OpenClaw Dev Team` is a **document-driven, reusable virtual software development team skill**. It orchestrates structured agents and artifacts to cover the entire workflow from idea submission to QA acceptance.  
+**OpenClaw Dev Team** 是一个以 Artifact 为核心的多 Agent 开发流水线，让「想法 → PRD → 设计 → 实现 → QA」全流程可追溯、可审计、可自动化。
 
-Key features include:
-
-- **PM understands user requirements → Automatically creates project folder**  
-- **PRD output → Written to folder → README placeholders updated**  
-- **Supports multi-version PRD management and change handling**  
-- **Full logging and automatic folder management**  
-
----
-
-## Key Features
-
-1. **End-to-end virtual dev team support**: PM, PJM, UX/UI designers, architect, frontend/backend, QA  
-2. **Document-driven workflow**: All requirements and PRD managed as artifacts  
-3. **Automated project initialization**: Creates `$HOME/openclaw_workspace/project-{ProjectName}` automatically  
-4. **Seamless PRD-folder integration**: PRD output written to project folder, README placeholder updated  
-5. **Smart change handling**: Minor versions (v1.x) vs major versions (v2.0)  
-6. **Configurable runtime environment**: `domain_context`, `language`, `tone`  
+**你会喜欢它的原因**
+- ✅ **流程可控**：Artifact 是唯一事实源，阶段推进有硬性 Gate。  
+- ✅ **覆盖完整**：PM → PJM → UX/UI → 架构 → 前后端 → QA。  
+- ✅ **工程友好**：自动创建项目目录、写入文档、记录日志。  
+- ✅ **需求变更安全**：PRD 版本化 + ChangeRequest 机制。
 
 ---
 
-## Installation & Setup
+## 功能特色
+
+1. **端到端虚拟开发团队支持**：PM、PJM、UX/UI 设计、架构师、前端/后端、QA  
+2. **文档驱动流程**：所有需求和 PRD 都通过 Artifact 管理，可追溯  
+3. **智能项目初始化**：自动创建 `$HOME/openclaw_workspace/project-{ProjectName}` 目录  
+4. **PRD 与目录无缝衔接**：PRD 输出后自动写入项目目录，更新 README 占位符  
+5. **智能变更处理**：小版本（v1.x）和主版本（v2.0）区分需求扩展和方向性变更  
+6. **可配置运行环境**：domain_context / language / tone  
+
+---
+
+## 安装与配置
 
 ```bash
-# Clone the repository
+# 克隆仓库
 git clone https://github.com/<your-username>/openclaw-agents-team-skill.git
 cd openclaw-agents-team-skill
 
-# Install OpenClaw >=0.5.0
+# 安装 OpenClaw >=0.5.0
 pip install openclaw>=0.5.0
 
-# Optional: customize workspace
+# 可选：自定义工作目录
 export OPENCLAW_WORKSPACE=~/openclaw_workspace
 ````
 
-> Default workspace is `~/openclaw_workspace`, used to store auto-created project folders and logs.
+> 默认工作目录为 `~/openclaw_workspace`，用于存放自动创建的项目文件夹和日志。
 
 ---
 
-## Core Concepts
+## 核心概念
 
-* **Agent**: Virtual team member role, with defined input/output artifacts
-* **Artifact**: Document or data unit, e.g., `PRD`, `RawIdea`, `ChangeRequest`
-* **Workflow Hooks**: Automation scripts executed at specific stages
-* **Meta Block**: The first section of PRD, includes Project Name, version, author, etc.
+* **Agent**：虚拟团队成员，每个角色有明确输入/输出 Artifact
+* **Artifact**：文档或数据单元，如 `PRD`、`RawIdea`、`ChangeRequest`
+* **Workflow Hooks**：自动化脚本，在特定阶段执行操作
+* **Meta 区块**：PRD 文档首个章节，包含 Project Name、版本、作者等信息
 
 ---
 
-## Workflow
+## 工作流程
 
-```text
-    User submits idea/change
-        |
-        v
-       PM generates PRD
-        |
-        v
-   Before Hook: create project folder + README
-        |
-        v
-    After Hook: write PRD + update README
-        |
-        v
-UX/UI / Frontend / Backend / QA execute development & testing
+```mermaid
+flowchart LR
+  A[RawIdea / ChangeRequest] --> B[PM: PRD + ProjectContext]
+  B --> C[PJM: Backlog]
+  B --> D[UX: UserFlow]
+  D --> E[UI: UIDesignSpec]
+  B --> F[架构: APISpec/DBSchema]
+  E --> G[前端: Implementation]
+  F --> H[后端: Implementation]
+  G --> I[Implementation Summary]
+  H --> I
+  I --> J[QA: TestReport & BugReport]
 ```
 
-**Explanation**:
 
-1. User submits **RawIdea / ChangeRequest**
-2. PM Agent generates PRD with Meta Block
-3. **Before Hook** creates project folder and README.md
-4. **After Hook** writes PRD file and updates README placeholder
-5. Subsequent agents execute development and QA based on artifacts
+**说明**：
+
+1. 用户提交 **RawIdea / ChangeRequest**
+2. PM Agent 生成 PRD（包含 Meta 区块）
+3. Before Hook 自动创建项目文件夹和 README.md
+4. After Hook 写入 PRD 并更新 README 占位符
+5. 后续团队 Agent 基于 Artifact 执行开发和验收
+
+**生命周期示意**
+
+```mermaid
+sequenceDiagram
+  participant 用户
+  participant PM
+  participant 系统
+  participant QA
+
+  用户->>PM: 提交需求
+  PM->>系统: Before Hook（创建目录）
+  PM->>系统: PRD 写入 project_prd.md
+  系统->>QA: 阶段推进（实施完成）
+  QA->>PM: TestReport（approved/rejected）
+```
 
 ---
 
