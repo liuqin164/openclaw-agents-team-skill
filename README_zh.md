@@ -3,7 +3,7 @@
   <b>🇨🇳 简体中文</b> | <a href="README.md">🇺🇸 English</a>
 </p>
 
-# 基于文档驱动的虚拟开发团队 Skill
+# OpenClaw Dev Team（devteam）
 
 ![版本](https://img.shields.io/badge/version-1.0.5-blue)
 ![许可证](https://img.shields.io/badge/license-MIT-green)
@@ -29,14 +29,13 @@
 
 ## 项目简介
 
-`Artifact-driven Virtual Dev Team` 是一个 **文档驱动、可复用的虚拟软件开发团队 Skill**，通过结构化 Agent 和 Artifact，覆盖从需求产生到 QA 验收的完整流程。  
+**OpenClaw Dev Team** 是一个以 Artifact 为核心的多 Agent 开发流水线，让「想法 → PRD → 设计 → 实现 → QA」全流程可追溯、可审计、可自动化。
 
-主要特点：
-
-- **PM 理解用户需求 → 自动创建项目目录**  
-- **PRD 输出 → 自动写入文件夹 → README 占位符更新**  
-- **支持多版本 PRD 管理与变更处理**  
-- **全程日志记录和目录管理自动化**  
+**你会喜欢它的原因**
+- ✅ **流程可控**：Artifact 是唯一事实源，阶段推进有硬性 Gate。  
+- ✅ **覆盖完整**：PM → PJM → UX/UI → 架构 → 前后端 → QA。  
+- ✅ **工程友好**：自动创建项目目录、写入文档、记录日志。  
+- ✅ **需求变更安全**：PRD 版本化 + ChangeRequest 机制。
 
 ---
 
@@ -55,8 +54,8 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/<your-username>/artifact-driven-dev-team.git
-cd artifact-driven-dev-team
+git clone https://github.com/<your-username>/openclaw-agents-team-skill.git
+cd openclaw-agents-team-skill
 
 # 安装 OpenClaw >=0.5.0
 pip install openclaw>=0.5.0
@@ -80,19 +79,19 @@ export OPENCLAW_WORKSPACE=~/openclaw_workspace
 
 ## 工作流程
 
-    用户提交需求
-        |
-        v
-   PM 生成 PRD
-        |
-        v
-   Before Hook: 创建项目文件夹 + README
-        |
-        v
-    After Hook: 写入 PRD + 更新 README
-        |
-        v
-   UX/UI/前后端/QA:执行开发与验收
+```mermaid
+flowchart LR
+  A[RawIdea / ChangeRequest] --> B[PM: PRD + ProjectContext]
+  B --> C[PJM: Backlog]
+  B --> D[UX: UserFlow]
+  D --> E[UI: UIDesignSpec]
+  B --> F[架构: APISpec/DBSchema]
+  E --> G[前端: Implementation]
+  F --> H[后端: Implementation]
+  G --> I[Implementation Summary]
+  H --> I
+  I --> J[QA: TestReport & BugReport]
+```
 
 
 **说明**：
@@ -103,12 +102,28 @@ export OPENCLAW_WORKSPACE=~/openclaw_workspace
 4. After Hook 写入 PRD 并更新 README 占位符
 5. 后续团队 Agent 基于 Artifact 执行开发和验收
 
+**生命周期示意**
+
+```mermaid
+sequenceDiagram
+  participant 用户
+  participant PM
+  participant 系统
+  participant QA
+
+  用户->>PM: 提交需求
+  PM->>系统: Before Hook（创建目录）
+  PM->>系统: PRD 写入 project_prd.md
+  系统->>QA: 阶段推进（实施完成）
+  QA->>PM: TestReport（approved/rejected）
+```
+
 ---
 
 ## 目录结构（示例）
 
 ```text
-artifact-driven-dev-team/
+openclaw-agents-team-skill/
 ├─ agents/
 │  ├─ architect.yaml
 │  ├─ backend.yaml
@@ -182,6 +197,8 @@ artifact-driven-dev-team/
 
 ## 使用示例
 
+Skill 激活名：`devteam`。
+
 ### 示例 1：Basic Run
 
 ```yaml
@@ -193,7 +210,7 @@ RawIdea:
 运行：
 
 ```bash
-openclaw run skill artifact-driven-dev-team --input RawIdea.yaml
+openclaw run skill devteam --input RawIdea.yaml
 ```
 
 结果：
@@ -225,7 +242,7 @@ prompt: |
 运行：
 
 ```bash
-openclaw run skill artifact-driven-dev-team --override agents/pm_custom.yaml --input RawIdea.yaml
+openclaw run skill devteam --override agents/pm_custom.yaml --input RawIdea.yaml
 ```
 
 

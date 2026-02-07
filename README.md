@@ -3,7 +3,7 @@
   <a href="README_zh.md">🇨🇳 简体中文</a> | <b>🇺🇸 English</b>
 </p>
 
-# Artifact-Driven Virtual Development Team Skill
+# OpenClaw Dev Team (devteam)
 
 ![Version](https://img.shields.io/badge/version-1.0.5-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -29,14 +29,13 @@
 
 ## Project Overview
 
-The `Artifact-driven Virtual Dev Team` is a **document-driven, reusable virtual software development team skill**. It orchestrates structured agents and artifacts to cover the entire workflow from idea submission to QA acceptance.  
+**OpenClaw Dev Team** is an artifact-first, multi-agent development pipeline that turns a raw idea into QA-ready delivery—**with auditable docs, deterministic stage transitions, and automated project scaffolding**.
 
-Key features include:
-
-- **PM understands user requirements → Automatically creates project folder**  
-- **PRD output → Written to folder → README placeholders updated**  
-- **Supports multi-version PRD management and change handling**  
-- **Full logging and automatic folder management**  
+**Why teams love it**
+- ✅ **Zero-guesswork workflow**: Artifacts are the single source of truth.  
+- ✅ **End-to-end coverage**: PM → PJM → UX/UI → Architect → Backend/Frontend → QA.  
+- ✅ **Built-in ops hygiene**: Auto folders, logs, hooks, and strict stage gates.  
+- ✅ **Change-safe**: PRD versioning and change-request governance.
 
 ---
 
@@ -55,8 +54,8 @@ Key features include:
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/artifact-driven-dev-team.git
-cd artifact-driven-dev-team
+git clone https://github.com/<your-username>/openclaw-agents-team-skill.git
+cd openclaw-agents-team-skill
 
 # Install OpenClaw >=0.5.0
 pip install openclaw>=0.5.0
@@ -80,20 +79,18 @@ export OPENCLAW_WORKSPACE=~/openclaw_workspace
 
 ## Workflow
 
-```text
-    User submits idea/change
-        |
-        v
-       PM generates PRD
-        |
-        v
-   Before Hook: create project folder + README
-        |
-        v
-    After Hook: write PRD + update README
-        |
-        v
-UX/UI / Frontend / Backend / QA execute development & testing
+```mermaid
+flowchart LR
+  A[Raw Idea / Change Request] --> B[PM: PRD + ProjectContext]
+  B --> C[PJM: Backlog]
+  B --> D[UX: UserFlow]
+  D --> E[UI: UIDesignSpec]
+  B --> F[Architect: APISpec/DBSchema]
+  E --> G[Frontend: Implementation]
+  F --> H[Backend: Implementation]
+  G --> I[Implementation Summary]
+  H --> I
+  I --> J[QA: TestReport & BugReport]
 ```
 
 **Explanation**:
@@ -104,12 +101,28 @@ UX/UI / Frontend / Backend / QA execute development & testing
 4. **After Hook** writes PRD file and updates README placeholder
 5. Subsequent agents execute development and QA based on artifacts
 
+**Lifecycle snapshot**
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant PM
+  participant System
+  participant QA
+
+  User->>PM: Submit idea
+  PM->>System: Before hook (create folder)
+  PM->>System: PRD -> project_prd.md
+  System->>QA: Stage transition (Implementation complete)
+  QA->>PM: TestReport (approved/rejected)
+```
+
 ---
 
 ## Directory Structure (Example)
 
 ```text
-artifact-driven-dev-team/
+openclaw-agents-team-skill/
 ├─ agents/
 │  ├─ architect.yaml
 │  ├─ backend.yaml
@@ -183,6 +196,8 @@ artifact-driven-dev-team/
 
 ## Usage Examples
 
+Skill activation name: `devteam`.
+
 ### Example 1: Basic Run
 
 ```yaml
@@ -194,7 +209,7 @@ RawIdea:
 Run:
 
 ```bash
-openclaw run skill artifact-driven-dev-team --input RawIdea.yaml
+openclaw run skill devteam --input RawIdea.yaml
 ```
 
 Output:
@@ -226,7 +241,7 @@ prompt: |
 Run:
 
 ```bash
-openclaw run skill artifact-driven-dev-team --override agents/pm_custom.yaml --input RawIdea.yaml
+openclaw run skill devteam --override agents/pm_custom.yaml --input RawIdea.yaml
 ```
 
 ---

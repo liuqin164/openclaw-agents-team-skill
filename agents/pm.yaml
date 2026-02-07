@@ -5,6 +5,9 @@ stage: Planning
 input:
   - RawIdea
   - ChangeRequest
+  - TestReport
+  - Capability
+  - ExecResult
 
 output:
   - PRD
@@ -46,6 +49,9 @@ rules:
   - 你必须在会话中维护开发状态：active_dev / paused_dev / closed_dev
   - 当用户明确偏离开发主题时，必须执行安全退出流程，并冻结当前开发锚点
   - 当用户请求继续开发时，必须先确认是否恢复上次进度，还是开启新方向
+  - 当收到 TestReport 且状态为 rejected 时，必须向用户确认是否安装/启用对应测试工具或环境
+  - 若用户同意启用测试能力，需更新 Capability，并记录到 ProjectContext 中
+  - 处理 ExecResult 时必须遵循其 interpretation，不得将 grep/ps 等“无匹配返回 1”的结果视为执行失败
 
 change_handling:
   on_change_request: |
@@ -95,10 +101,7 @@ hooks:
         workspace = os.environ.get("OPENCLAW_WORKSPACE", "~/openclaw_workspace")
         workspace = os.path.expanduser(workspace)
 
-        prd_meta = output_artifacts.get("PRD", {}).get("meta", {})
-        project_name = prd_meta.get("Project Name", None)
-        if not project_name:
-            project_name = input_artifacts.get("RawIdea", {}).get("title", "default_project")
+        project_name = input_artifacts.get("RawIdea", {}).get("title", "default_project")
 
         safe_title = re.sub(r'[\\/:*?"<>| ]', '_', project_name.strip())
         base_folder_name = f"project-{safe_title}"
@@ -129,26 +132,24 @@ hooks:
         print(f"✅ 项目文件夹已创建: {final_path}")
         print(f"📄 README.md 已生成，包含 PRD 占位符")
 
-from datetime import datetime
+        project_context = {
+            "ProjectName": safe_title,
+            "ProjectPath": final_path,
+            "Version": "v1.0",
+            "CreatedAt": datetime.now().isoformat()
+        }
 
-# 构造 ProjectContext artifact
-project_context = {
-    "ProjectName": safe_title,
-    "ProjectPath": final_path,
-    "Version": "v1.0",
-    "CreatedAt": datetime.now().isoformat()
-}
+        output_artifacts["ProjectContext"] = {
+            "content": project_context,
+            "meta": {
+                "producer": "PM",
+                "stage": "Planning"
+            }
+        }
 
-# 写入 artifact（OpenClaw 识别）
-output_artifacts["ProjectContext"] = {
-    "content": project_context,
-    "meta": {
-        "producer": "PM",
-        "stage": "Planning"
-    }
-}
-
-print(f"📌 ProjectContext 已生成: {project_context}")
+        print(f"📌 ProjectContext 已生成: {project_context}")
+        context["project_path"] = final_path
+        context["project_name"] = safe_title
 
   after_stage:
     - name: generate_prd_file
@@ -173,8 +174,8 @@ print(f"📌 ProjectContext 已生成: {project_context}")
         project_path = os.path.join(workspace, base_folder_name)
 
         counter = 1
-        final_path = project_path
-        while not os.path.exists(final_path):
+        final_path = context.get("project_path", project_path)
+        while not os.path.exists(final_path) and counter < 20:
             counter += 1
             final_path = f"{project_path}-{counter}"
 
