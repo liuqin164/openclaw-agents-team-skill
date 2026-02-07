@@ -38,7 +38,7 @@
 
 ## 三、Workflow Stage 与 Gate 控制（不可跳过）
 
-- 所有阶段推进必须严格遵循 `workflow_registry.yaml`。
+- 所有阶段推进必须严格遵循 `registry.yaml`。
 - 阶段完成 **必须** 由对应的 Stage Summary Artifact 锚定：
   - Planning → `PlanningStageSummary`
   - Design → `DesignStageSummary`

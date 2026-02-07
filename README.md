@@ -29,7 +29,7 @@
 
 ## Project Overview
 
-The `Artifact-driven Virtual Dev Team` is a **document-driven, reusable virtual software development team skill**. It orchestrates structured agents and artifacts to cover the entire workflow from idea submission to QA acceptance.  
+The `OpenClaw Dev Team` is a **document-driven, reusable virtual software development team skill**. It orchestrates structured agents and artifacts to cover the entire workflow from idea submission to QA acceptance.  
 
 Key features include:
 
@@ -55,8 +55,8 @@ Key features include:
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/artifact-driven-dev-team.git
-cd artifact-driven-dev-team
+git clone https://github.com/<your-username>/openclaw-agents-team-skill.git
+cd openclaw-agents-team-skill
 
 # Install OpenClaw >=0.5.0
 pip install openclaw>=0.5.0
@@ -109,7 +109,7 @@ UX/UI / Frontend / Backend / QA execute development & testing
 ## Directory Structure (Example)
 
 ```text
-artifact-driven-dev-team/
+openclaw-agents-team-skill/
 ├─ agents/
 │  ├─ architect.yaml
 │  ├─ backend.yaml
@@ -183,6 +183,8 @@ artifact-driven-dev-team/
 
 ## Usage Examples
 
+Skill activation name: `devteam`.
+
 ### Example 1: Basic Run
 
 ```yaml
@@ -194,7 +196,7 @@ RawIdea:
 Run:
 
 ```bash
-openclaw run skill artifact-driven-dev-team --input RawIdea.yaml
+openclaw run skill devteam --input RawIdea.yaml
 ```
 
 Output:
@@ -226,7 +228,7 @@ prompt: |
 Run:
 
 ```bash
-openclaw run skill artifact-driven-dev-team --override agents/pm_custom.yaml --input RawIdea.yaml
+openclaw run skill devteam --override agents/pm_custom.yaml --input RawIdea.yaml
 ```
 
 ---

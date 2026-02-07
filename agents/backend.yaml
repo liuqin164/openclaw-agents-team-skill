@@ -41,8 +41,8 @@ hooks:
         safe_title = re.sub(r'[\\/:*?"<>| ]', '_', project_name.strip())
         project_path = os.path.join(workspace, f"project-{safe_title}")
         counter = 1
-        final_path = project_path
-        while not os.path.exists(final_path):
+        final_path = context.get("project_path", project_path)
+        while not os.path.exists(final_path) and counter < 20:
             counter += 1
             final_path = f"{project_path}-{counter}"
 

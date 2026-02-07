@@ -152,6 +152,10 @@ triggers:
     when:
       artifact_completed: ImplementationStageSummary
 
+  - agent: PM
+    when:
+      artifact_rejected: TestReport
+
   # ---- Change Request ----
   - agent: PM
     when:
