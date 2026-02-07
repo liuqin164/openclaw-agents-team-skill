@@ -27,6 +27,24 @@ global:
 # =========================
 artifacts:
 
+ProjectContext:
+  description: >
+    项目全局上下文，作为整个流水线的唯一事实源（Single Source of Truth）。
+    包含项目名称、物理路径、版本信息等。
+  schema:
+    ProjectName:
+      type: string
+      description: 项目名称（用于展示与标识）
+    ProjectPath:
+      type: string
+      description: 项目在文件系统中的绝对路径
+    Version:
+      type: string
+      description: PRD 版本号（如 v1.0 / v1.1）
+    CreatedAt:
+      type: string
+      description: 项目创建时间（ISO8601）
+
   # -------- Input --------
   RawIdea:
     description: User provided raw product idea
