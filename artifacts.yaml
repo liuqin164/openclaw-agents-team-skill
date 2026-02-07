@@ -44,6 +44,9 @@ artifacts:
       CreatedAt:
         type: string
         description: 项目创建时间（ISO8601）
+      Capabilities:
+        type: object
+        description: 测试/运行能力与工具可用性记录（可选）
 
   # -------- Input --------
   RawIdea:
@@ -62,6 +65,12 @@ artifacts:
       - 新增或修改的需求
       - 变更原因
       - 紧急程度
+
+  Capability:
+    description: Test environment and tooling capability declaration
+    producer: PM
+    consumers: [QA]
+    status_flow: [draft, approved]
 
   # -------- Planning --------
   PRD:

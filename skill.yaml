@@ -50,6 +50,8 @@ agents:
     input:
       - RawIdea
       - ChangeRequest
+      - TestReport
+      - Capability
     output:
       - PRD
     prompt: |
@@ -69,6 +71,8 @@ agents:
       - 只输出 PRD
       - PRD 必须包含完整 Meta 区块
       - 维护 active_dev / paused_dev / closed_dev 状态
+      - 当收到 TestReport 且状态为 rejected 时，必须向用户确认是否安装/启用对应测试工具或环境
+      - 若用户同意启用测试能力，需更新 Capability，并记录到 ProjectContext 中
 
     constraints:
       - output_format: markdown

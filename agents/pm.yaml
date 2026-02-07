@@ -5,6 +5,8 @@ stage: Planning
 input:
   - RawIdea
   - ChangeRequest
+  - TestReport
+  - Capability
 
 output:
   - PRD
@@ -46,6 +48,8 @@ rules:
   - 你必须在会话中维护开发状态：active_dev / paused_dev / closed_dev
   - 当用户明确偏离开发主题时，必须执行安全退出流程，并冻结当前开发锚点
   - 当用户请求继续开发时，必须先确认是否恢复上次进度，还是开启新方向
+  - 当收到 TestReport 且状态为 rejected 时，必须向用户确认是否安装/启用对应测试工具或环境
+  - 若用户同意启用测试能力，需更新 Capability，并记录到 ProjectContext 中
 
 change_handling:
   on_change_request: |
