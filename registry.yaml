@@ -4,58 +4,39 @@ name: artifact-driven-dev-team
 
 description: >
   Artifact-driven virtual software development team workflow.
-  Defines deterministic stage ownership, artifact responsibility,
-  and controlled rollback / change propagation.
+  Stage transitions are strictly driven by StageSummary artifacts.
+  Each stage has exactly one completion anchor.
 
 # =========================
-# 1. Stages（阶段 + 责任边界）
+# 1. Stages（阶段定义 + 唯一完成锚点）
 # =========================
 stages:
-
   - name: Planning
     order: 1
     owner: PM
-    produces:
-      - PRD
-      - Backlog
     completion_condition:
-      - PRD.approved
-      - Backlog.approved
+      - PlanningStageSummary.completed
 
   - name: Design
     order: 2
     owner: Architect
-    produces:
-      - UserFlow
-      - UIDesignSpec
-      - APISpec
-      - DBSchema
     completion_condition:
-      - UserFlow.approved
-      - UIDesignSpec.approved
-      - APISpec.approved
+      - DesignStageSummary.completed
 
   - name: Implementation
     order: 3
     owner: BackendEngineer
-    produces:
-      - BackendImplementation
-      - FrontendImplementation
     completion_condition:
-      - BackendImplementation.completed
-      - FrontendImplementation.completed
+      - ImplementationStageSummary.completed
 
   - name: QA
     order: 4
     owner: QA
-    produces:
-      - TestReport
-      - BugReport
     completion_condition:
       - TestReport.approved
 
 # =========================
-# 2. Agents（角色绑定阶段）
+# 2. Agents（参与角色）
 # =========================
 agents:
   - name: PM
@@ -91,7 +72,7 @@ agents:
     enabled: true
 
 # =========================
-# 3. Triggers（唯一主驱动）
+# 3. Triggers（Artifact 驱动执行）
 # =========================
 triggers:
 
@@ -105,6 +86,12 @@ triggers:
   - agent: PJM
     when:
       artifact_approved: PRD
+
+  - agent: PM
+    when:
+      artifact_approved: Backlog
+    hooks:
+      - finalize_planning_stage
 
   # ---- Design ----
   - agent: UXDesigner
@@ -121,6 +108,14 @@ triggers:
         - artifact_approved: PRD
         - artifact_approved: UserFlow
 
+  - agent: Architect
+    when:
+      all:
+        - artifact_approved: UIDesignSpec
+        - artifact_approved: APISpec
+    hooks:
+      - finalize_design_stage
+
   # ---- Implementation ----
   - agent: BackendEngineer
     when:
@@ -132,67 +127,71 @@ triggers:
         - artifact_approved: APISpec
         - artifact_approved: UIDesignSpec
 
+  - agent: BackendEngineer
+    when:
+      all:
+        - artifact_completed: BackendImplementation
+        - artifact_completed: FrontendImplementation
+    hooks:
+      - finalize_implementation_stage
+
   # ---- QA ----
   - agent: QA
     when:
-      stage_completed: Implementation
+      artifact_completed: ImplementationStageSummary
 
   # ---- Change Request ----
   - agent: PM
     when:
       artifact_created: ChangeRequest
-    effect:
-      interrupt_stage: Planning
     hooks:
       - evaluate_change_request
 
 # =========================
-# 4. Stage Transition（严格推进）
+# 4. Stage Transition（严格由 StageSummary 推进）
 # =========================
 stage_transition:
   - from: Planning
     to: Design
-    when: stage_completed
+    when:
+      artifact_completed: PlanningStageSummary
 
   - from: Design
     to: Implementation
-    when: stage_completed
+    when:
+      artifact_completed: DesignStageSummary
 
   - from: Implementation
     to: QA
-    when: stage_completed
+    when:
+      artifact_completed: ImplementationStageSummary
 
 # =========================
-# 5. Parallelism（安全并行）
+# 5. Parallelism（并行与封锁）
 # =========================
 parallelism:
   allowed:
     - UXDesigner
+    - UIDesigner
     - Architect
+
   blocked:
     - QA
 
 # =========================
-# 6. Failure & Rollback Policy（状态机）
+# 6. Failure & Rollback Policy
 # =========================
 failure_policy:
-
   on_artifact_rejected:
     action: rollback_stage
-    rollback:
-      to_stage: artifact.producer_stage
-      artifact_state: draft
+    rollback_to_stage_owner: true
 
   on_bug_reported:
     action: reopen_stage
-    reopen:
-      stage: Implementation
-      invalidate:
-        - BackendImplementation
-        - FrontendImplementation
+    target_stage: Implementation
 
 # =========================
-# 7. Keepalive（防模型退化）
+# 7. Skill Keepalive
 # =========================
 keepalive:
   mode: artifact-driven
@@ -203,16 +202,76 @@ keepalive:
   heartbeat_log: true
 
 # =========================
-# 8. Hooks（仅声明，不实现）
+# 8. Hooks（阶段封账 Hook）
 # =========================
 hooks:
 
   before_prd_create:
-    scope: workflow
     description: >
-      Initialize project context before PRD generation.
+      Create project folder and register project_path
+      before PRD generation.
+    action: |
+      import os, pathlib, re
+
+      workspace = os.path.expanduser(
+        os.environ.get("OPENCLAW_WORKSPACE", "~/openclaw_workspace")
+      )
+
+      raw = input_artifacts.get("RawIdea", {})
+      project_name = raw.get("title", "default_project")
+      safe = re.sub(r'[^a-zA-Z0-9_]', '_', project_name)
+
+      base = f"project-{safe}"
+      path = os.path.join(workspace, base)
+      i = 1
+      final = path
+      while os.path.exists(final):
+          i += 1
+          final = f"{path}-{i}"
+
+      pathlib.Path(final).mkdir(parents=True, exist_ok=True)
+
+      context["project_path"] = final
+      context["project_name"] = safe
+
+      with open(os.path.join(final, "README.md"), "w", encoding="utf-8") as f:
+          f.write(f"# {safe}\n\n")
+          f.write("PRD: project_prd.md\n")
+
+      print(f"📁 Project initialized at {final}")
+
+  finalize_planning_stage:
+    description: >
+      Create PlanningStageSummary as the single completion anchor.
+    action: |
+      create_artifact(
+        name="PlanningStageSummary",
+        status="completed"
+      )
+      print("✅ Planning stage completed")
+
+  finalize_design_stage:
+    description: >
+      Create DesignStageSummary as the single completion anchor.
+    action: |
+      create_artifact(
+        name="DesignStageSummary",
+        status="completed"
+      )
+      print("✅ Design stage completed")
+
+  finalize_implementation_stage:
+    description: >
+      Create ImplementationStageSummary as the single completion anchor.
+    action: |
+      create_artifact(
+        name="ImplementationStageSummary",
+        status="completed"
+      )
+      print("✅ Implementation stage completed")
 
   evaluate_change_request:
-    scope: workflow
     description: >
-      Evaluate ChangeRequest and determine PRD versioning strategy.
+      Evaluate ChangeRequest and decide PRD versioning strategy.
+    action: |
+      print("🔄 ChangeRequest evaluation triggered")
