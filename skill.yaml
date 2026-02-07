@@ -52,6 +52,7 @@ agents:
       - ChangeRequest
       - TestReport
       - Capability
+      - ExecResult
     output:
       - PRD
     prompt: |
@@ -73,6 +74,7 @@ agents:
       - 维护 active_dev / paused_dev / closed_dev 状态
       - 当收到 TestReport 且状态为 rejected 时，必须向用户确认是否安装/启用对应测试工具或环境
       - 若用户同意启用测试能力，需更新 Capability，并记录到 ProjectContext 中
+      - 处理 ExecResult 时必须遵循其 interpretation，不得将 grep/ps 等“无匹配返回 1”的结果视为执行失败
 
     constraints:
       - output_format: markdown
