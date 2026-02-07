@@ -1,16 +1,14 @@
 name: artifact-driven-dev-team
 display_name: Artifact-driven Virtual Dev Team
 
-version: 1.0.5  # 全自动化最终版本
+version: 1.1.0
 schema_version: 1.0
 
 description: >
   A reusable, artifact-driven virtual software development team skill.
-  It provides a full workflow from product idea to QA acceptance,
-  powered by structured agents and document-based orchestration.
-  新增智能项目文件夹创建功能：在 PM 理解用户需求后生成 PRD 前，
-  自动创建项目目录，生成 README.md 并记录日志。
-  README 自动包含 PRD 文件占位符，PRD 生成后自动写入项目目录并更新 README。
+  Provides a full workflow from product idea to QA acceptance.
+  Ensures strict artifact orchestration, stable agent roles,
+  and deterministic project folder management.
 
 author: LangGPT
 license: MIT
@@ -24,30 +22,84 @@ entry:
   artifacts: artifacts.yaml
 
 # =========================
-# 2. Built-in Agents
+# 2. Project Context（唯一真相源）
+# =========================
+project_context:
+  required:
+    - project_name
+    - project_path
+    - workspace
+  readonly_after_init: true
+  source:
+    project_name:
+      from:
+        - PRD.meta.Project Name
+        - RawIdea.title
+    workspace:
+      env: OPENCLAW_WORKSPACE
+      default: ~/openclaw_workspace
+
+# =========================
+# 3. Agents（统一定义）
 # =========================
 agents:
-  builtin:
-    - PM
-    - PJM
-    - UXDesigner
-    - UIDesigner
-    - Architect
-    - BackendEngineer
-    - FrontendEngineer
-    - QA
 
-  directory: agents/
+  PM:
+    role: Product Manager
+    stage: Planning
+    input:
+      - RawIdea
+      - ChangeRequest
+    output:
+      - PRD
+    prompt: |
+      你是一名资深产品经理（PM）。
+      你的唯一职责是将用户的原始想法或需求变更，
+      转化为结构化、可执行的 PRD 文档。
 
-# =========================
-# 3. Agent Template Policy
-# =========================
-agent_policy:
-  builtin_templates: required
-  allow_override: true
-  override_strategy:
-    - full_replace
-    - partial_extend
+      Project Name 要求：
+      - 仅包含字母、数字、下划线
+      - 必须写入 PRD Meta
+      - 作为项目目录名的唯一来源
+
+    rules:
+      - 不涉及技术实现
+      - 不拆解任务、不估算工时
+      - 不推测未提供的需求
+      - 只输出 PRD
+      - PRD 必须包含完整 Meta 区块
+      - 维护 active_dev / paused_dev / closed_dev 状态
+
+    constraints:
+      - output_format: markdown
+
+  PJM:
+    role: Project Manager
+    stage: Planning
+
+  UXDesigner:
+    role: UX Designer
+    stage: Design
+
+  UIDesigner:
+    role: UI Designer
+    stage: Design
+
+  Architect:
+    role: System Architect
+    stage: Design
+
+  BackendEngineer:
+    role: Backend Engineer
+    stage: Implementation
+
+  FrontendEngineer:
+    role: Frontend Engineer
+    stage: Implementation
+
+  QA:
+    role: QA Engineer
+    stage: QA
 
 # =========================
 # 4. Artifact Policy
@@ -68,102 +120,87 @@ workflow_policy:
   enforce_stage_order: true
   allow_parallel_execution: true
   allow_skip_stage: false
-  hooks:
+
+# =========================
+# 6. Hooks（分层语义）
+# =========================
+hooks:
+
+  lifecycle:   # Skill 生命周期
+    on_install:
+      - validate_environment
+      - init_artifact_store
+    on_uninstall:
+      - cleanup_temp_artifacts
+
+  workflow:    # Workflow 生命周期（唯一允许动项目结构的地方）
+
     before_stage:
       PM:
         - name: create_project_folder
           description: >
-            在 PM 理解用户需求后、生成 PRD 之前，
-            在 $HOME/openclaw_workspace/ 下创建项目文件夹，
-            并生成 README.md 和操作日志。
-            README.md 自动包含 PRD 文件占位符。
+            在 PRD 生成前初始化项目目录，
+            并注册 project_context。
           action: |
             import os, pathlib, re
             from datetime import datetime
 
-            workspace = os.environ.get("OPENCLAW_WORKSPACE", "~/openclaw_workspace")
-            workspace = os.path.expanduser(workspace)
+            workspace = os.path.expanduser(
+              os.environ.get("OPENCLAW_WORKSPACE", "~/openclaw_workspace")
+            )
 
-            # --- 获取 Project Name ---
-            prd_meta = output_artifacts.get("PRD", {}).get("meta", {})
-            project_name = prd_meta.get("Project Name") or input_artifacts.get("RawIdea", {}).get("title", "default_project")
-            safe_title = re.sub(r'[\\/:*?"<>| ]', '_', project_name.strip())
-            base_folder_name = f"project-{safe_title}"
-            project_path = os.path.join(workspace, base_folder_name)
+            raw = input_artifacts.get("RawIdea", {})
+            title = raw.get("title", "default_project")
+            safe = re.sub(r'[^a-zA-Z0-9_]', '_', title.strip())
 
-            counter = 1
-            final_path = project_path
-            while os.path.exists(final_path):
-                counter += 1
-                final_path = f"{project_path}-{counter}"
+            base = f"project-{safe}"
+            path = os.path.join(workspace, base)
+            i = 1
+            final = path
+            while os.path.exists(final):
+                i += 1
+                final = f"{path}-{i}"
 
-            pathlib.Path(final_path).mkdir(parents=True, exist_ok=True)
+            pathlib.Path(final).mkdir(parents=True, exist_ok=True)
 
-            # --- 生成 README.md ---
-            readme_path = os.path.join(final_path, "README.md")
-            prd_file_name = "project_prd.md"
-            with open(readme_path, "w", encoding="utf-8") as f:
-                f.write(f"# 项目目录: {base_folder_name}\n")
-                f.write(f"- 原始需求标题: {input_artifacts.get('RawIdea', {}).get('title', project_name)}\n")
-                f.write(f"- 创建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-                f.write("## PRD 文件\n")
-                f.write(f"- 占位符: [{prd_file_name}]({prd_file_name})\n")
-                f.write("- 生成后请替换此占位符为实际文件路径\n")
+            context["project_name"] = safe
+            context["project_path"] = final
+            context["workspace"] = workspace
 
-            # --- 写操作日志 ---
-            log_file = os.path.join(workspace, "project_creation.log")
-            with open(log_file, "a", encoding="utf-8") as log:
-                log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 创建项目文件夹: {final_path}\n")
+            with open(os.path.join(final, "README.md"), "w", encoding="utf-8") as f:
+                f.write(f"# {safe}\n\n")
+                f.write("PRD: project_prd.md\n")
 
-            print(f"✅ 项目文件夹已创建: {final_path}")
-            print(f"📄 README.md 已生成，包含 PRD 占位符")
+            log = os.path.join(workspace, "project_creation.log")
+            with open(log, "a", encoding="utf-8") as l:
+                l.write(f"{datetime.now()} | create project {final}\n")
 
     after_stage:
       PM:
-        - name: generate_prd_file
+        - name: write_prd_to_project
           description: >
-            在 PM 生成 PRD 后，将 PRD 文件写入项目目录，
-            并自动替换 README.md 中的占位符链接。
+            将 PRD 写入项目目录并更新 README。
           action: |
-            import os, re
+            import os
 
-            workspace = os.environ.get("OPENCLAW_WORKSPACE", "~/openclaw_workspace")
-            workspace = os.path.expanduser(workspace)
+            project_path = context["project_path"]
+            prd = output_artifacts.get("PRD", {}).get("content", "")
 
-            prd_content = output_artifacts.get("PRD", {}).get("content", "")
-            prd_meta = output_artifacts.get("PRD", {}).get("meta", {})
-            project_name = prd_meta.get("Project Name") or input_artifacts.get("RawIdea", {}).get("title", "default_project")
-            safe_title = re.sub(r'[\\/:*?"<>| ]', '_', project_name.strip())
-            base_folder_name = f"project-{safe_title}"
-            project_path = os.path.join(workspace, base_folder_name)
+            prd_path = os.path.join(project_path, "project_prd.md")
+            with open(prd_path, "w", encoding="utf-8") as f:
+                f.write(prd)
 
-            counter = 1
-            final_path = project_path
-            while not os.path.exists(final_path):
-                counter += 1
-                final_path = f"{project_path}-{counter}"
+            print(f"📄 PRD written to {prd_path}")
 
-            prd_file_name = "project_prd.md"
-            prd_file_path = os.path.join(final_path, prd_file_name)
-
-            # 写 PRD 文件
-            with open(prd_file_path, "w", encoding="utf-8") as f:
-                f.write(prd_content)
-
-            # 更新 README.md 中占位符
-            readme_path = os.path.join(final_path, "README.md")
-            with open(readme_path, "r+", encoding="utf-8") as f:
-                content = f.read()
-                content = re.sub(r'\[project_prd\.md\]\(project_prd\.md\)', f"[{prd_file_name}]({prd_file_name})", content)
-                f.seek(0)
-                f.write(content)
-                f.truncate()
-
-            print(f"📄 PRD 文件已生成: {prd_file_path}")
-            print(f"✅ README.md 中的占位符已更新")
+  internal:   # 内部流程 Hook（不允许改目录）
+    evaluate_change_request:
+      description: >
+        判断 ChangeRequest 是否需要新 PRD 版本。
+      action: |
+        print("🔄 ChangeRequest evaluation triggered")
 
 # =========================
-# 6. Runtime Configuration
+# 7. Runtime
 # =========================
 runtime:
   configurable:
@@ -177,7 +214,7 @@ runtime:
     on_restart: continue_from_artifact_state
 
 # =========================
-# 7. Compatibility
+# 8. Compatibility
 # =========================
 compatibility:
   openclaw_min_version: ">=0.5.0"
@@ -187,16 +224,6 @@ compatibility:
     - embedded
 
 # =========================
-# 8. Installation Hooks
-# =========================
-hooks:
-  on_install:
-    - validate_environment
-    - init_artifact_store
-  on_uninstall:
-    - cleanup_temp_artifacts
-
-# =========================
 # 9. Documentation
 # =========================
 docs:
@@ -204,57 +231,3 @@ docs:
   examples:
     - examples/basic_run.md
     - examples/custom_agent_override.md
-
-# =========================
-# 10. PM Agent 配置
-# =========================
-agents:
-  PM:
-    role: Product Manager
-    stage: Planning
-    input:
-      - RawIdea
-      - ChangeRequest
-    output:
-      - PRD
-    prompt: |
-      你是一名资深产品经理（PM）。
-      你的唯一职责是：将用户的原始想法或需求变更，
-      转化为结构化、可执行的 PRD 文档。
-
-      注意：
-      - 生成的 Project Name 将用于在 $HOME/openclaw_workspace/ 下创建项目文件夹
-      - Project Name 必须只包含字母、数字或下划线
-      - Project Name 必须写入 PRD Meta 区块
-
-    rules:
-      - 不涉及技术实现细节
-      - 不拆解任务、不估算工时
-      - 不推测未给出的需求
-      - 只输出 PRD
-      - PRD 必须包含完整 Meta 区块
-      - 维护 active_dev / paused_dev / closed_dev 状态
-
-    change_handling:
-      on_change_request: |
-        当收到 ChangeRequest 时，先评估影响范围，判断是否方向性变更：
-        1. PRD 小版本 v1.x（功能扩展）
-        2. PRD 主版本 v2.0（方向性变更）
-        3. 明确拒绝请求
-
-    directional_change_sop:
-      description: >
-        判断需求方向性变更标准
-      판단条件:
-        - 核心用户是否改变
-        - 核心目标/价值主张是否改变
-        - 原 PRD 是否仍可用
-      判定规则:
-        - 0-1 条 → 非方向性变更
-        - ≥2 条 → 方向性变更，生成 v2.0
-      执行要求:
-        - 新 PRD 在 Meta 说明继承或断裂关系
-        - 不得修改旧 PRD
-
-    constraints:
-      - output_format: markdown
