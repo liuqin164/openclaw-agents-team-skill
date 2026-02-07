@@ -119,6 +119,7 @@ sequenceDiagram
 
 ---
 
+
 ## Directory Structure (Example)
 
 ```text

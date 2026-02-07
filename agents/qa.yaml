@@ -39,7 +39,7 @@ rules:
   - 禁止在无测试能力时给出“发布/返工”结论。
   - **责任定位**：每个 Bug 必须明确指派给 `BackendEngineer` (后端) 或 `FrontendEngineer` (前端)。
   - **文档闭环**：所有的测试报告和 Bug 清单必须注明存储在：{{CURRENT_PROJECT_PATH}}/artifacts/ 目录下。
-
+  
 constraints:
   - output_format: markdown
   - bug_priority_levels: [P0: 阻断, P1: 严重, P2: 一般, P3: 建议]
