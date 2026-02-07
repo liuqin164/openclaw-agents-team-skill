@@ -29,7 +29,7 @@
 
 ## 项目简介
 
-`Artifact-driven Virtual Dev Team` 是一个 **文档驱动、可复用的虚拟软件开发团队 Skill**，通过结构化 Agent 和 Artifact，覆盖从需求产生到 QA 验收的完整流程。  
+`OpenClaw Dev Team` 是一个 **文档驱动、可复用的虚拟软件开发团队 Skill**，通过结构化 Agent 和 Artifact，覆盖从需求产生到 QA 验收的完整流程。  
 
 主要特点：
 
@@ -55,8 +55,8 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/<your-username>/artifact-driven-dev-team.git
-cd artifact-driven-dev-team
+git clone https://github.com/<your-username>/openclaw-agents-team-skill.git
+cd openclaw-agents-team-skill
 
 # 安装 OpenClaw >=0.5.0
 pip install openclaw>=0.5.0
@@ -108,7 +108,7 @@ export OPENCLAW_WORKSPACE=~/openclaw_workspace
 ## 目录结构（示例）
 
 ```text
-artifact-driven-dev-team/
+openclaw-agents-team-skill/
 ├─ agents/
 │  ├─ architect.yaml
 │  ├─ backend.yaml
@@ -182,6 +182,8 @@ artifact-driven-dev-team/
 
 ## 使用示例
 
+Skill 激活名：`devteam`。
+
 ### 示例 1：Basic Run
 
 ```yaml
@@ -193,7 +195,7 @@ RawIdea:
 运行：
 
 ```bash
-openclaw run skill artifact-driven-dev-team --input RawIdea.yaml
+openclaw run skill devteam --input RawIdea.yaml
 ```
 
 结果：
@@ -225,7 +227,7 @@ prompt: |
 运行：
 
 ```bash
-openclaw run skill artifact-driven-dev-team --override agents/pm_custom.yaml --input RawIdea.yaml
+openclaw run skill devteam --override agents/pm_custom.yaml --input RawIdea.yaml
 ```
 
 
