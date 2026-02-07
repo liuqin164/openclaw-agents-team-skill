@@ -53,8 +53,10 @@ agents:
       - TestReport
       - Capability
       - ExecResult
+      - GovernanceState
     output:
       - PRD
+      - GovernanceState
     prompt: |
       你是一名资深产品经理（PM）。
       你的唯一职责是将用户的原始想法或需求变更，
@@ -75,6 +77,9 @@ agents:
       - 当收到 TestReport 且状态为 rejected 时，必须向用户确认是否安装/启用对应测试工具或环境
       - 若用户同意启用测试能力，需更新 Capability，并记录到 ProjectContext 中
       - 处理 ExecResult 时必须遵循其 interpretation，不得将 grep/ps 等“无匹配返回 1”的结果视为执行失败
+      - 需求收集阶段必须输出 GovernanceState，包含模式选择与当前阶段 gate
+      - Human-in-loop 模式下，每阶段结束必须等待用户明确“继续”后才可推进
+      - Autopilot 模式下，每阶段结束仅汇报进度，不需要等待用户继续
 
     constraints:
       - output_format: markdown
