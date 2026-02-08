@@ -54,7 +54,9 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/<your-username>/openclaw-agents-team-skill.git
+
+git clone https://github.com/liuqin164/openclaw-agents-team-skill.git
+
 cd openclaw-agents-team-skill
 
 # 安装 OpenClaw >=0.5.0
