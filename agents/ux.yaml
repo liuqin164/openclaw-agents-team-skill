@@ -56,8 +56,8 @@ hooks:
 
         # 支持带序号的项目路径
         counter = 1
-        final_path = project_path
-        while not os.path.exists(final_path):
+        final_path = context.get("project_path", project_path)
+        while not os.path.exists(final_path) and counter < 20:
             counter += 1
             final_path = f"{project_path}-{counter}"
 
