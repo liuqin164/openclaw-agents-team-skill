@@ -18,6 +18,8 @@ At requirement collection, the PM must output a GovernanceState artifact and sel
 
 When interpreting command results, use the ExecResult artifact and its `interpretation` field. For commands like `ps`/`grep`/`rg`, exit code `1` can mean “no match” rather than failure.
 
+If the system executes shell commands directly (e.g., `ls | grep`), treat exit code `1` from grep as “no match” and avoid failing the workflow.
+
 ## Key Files
 
 - `registry.yaml`: workflow stages, triggers, and transitions

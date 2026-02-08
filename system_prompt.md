@@ -34,6 +34,10 @@
   - meta_validation
 - `approved` 状态 Artifact 为只读，修改必须生成新版本。
 
+### Exec 结果语义（强制）
+- 当执行命令返回 exit code = 1 且为 grep/ps/rg 等“无匹配即返回 1”的命令时，视为“未匹配/无进程”，不是失败。
+- 若提供 `ExecResult` Artifact，必须以其 `interpretation` 为准，不得将无匹配误判为失败。
+
 ---
 
 ## 三、Workflow Stage 与 Gate 控制（不可跳过）

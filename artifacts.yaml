@@ -180,6 +180,56 @@ artifacts:
         type: boolean
         description: 是否为真实失败（而非无匹配/无进程）
 
+  Capability:
+    description: Test environment and tooling capability declaration
+    producer: PM
+    consumers: [QA]
+    status_flow: [draft, approved]
+
+  GovernanceState:
+    description: Governance mode/state machine snapshot
+    producer: PM
+    consumers: [System, User]
+    status_flow: [draft, approved]
+    schema:
+      mode:
+        type: string
+        description: human-in-loop 或 autopilot
+      phase:
+        type: string
+        description: 需求收集 / 阶段推进 / 交付
+      stage_gate:
+        type: string
+        description: 当前是否允许进入下一阶段（wait/continue）
+      updated_at:
+        type: string
+        description: 状态更新时间（ISO8601）
+
+  ExecResult:
+    description: Standardized execution result for shell commands
+    producer: System
+    consumers: [QA, PM]
+    status_flow: [completed]
+    schema:
+      command:
+        type: string
+        description: 原始执行命令
+      exit_code:
+        type: integer
+        description: 进程退出码
+      stdout:
+        type: string
+        description: 标准输出
+      stderr:
+        type: string
+        description: 标准错误
+      interpretation:
+        type: string
+        description: 退出码语义解释（如 grep 未匹配视为非失败）
+      is_failure:
+        type: boolean
+        description: 是否为真实失败（而非无匹配/无进程）
+
   # -------- Planning --------
   PRD:
     description: Product Requirement Document
